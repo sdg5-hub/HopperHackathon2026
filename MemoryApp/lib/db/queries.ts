@@ -23,6 +23,8 @@ import type {
   Schedule,
   SchedulePayload,
   ScheduleType,
+  UpsertUserInput,
+  User,
   UpdateMedicationPatch,
   UpdateSchedulePatch,
   WarningTag
@@ -40,11 +42,24 @@ function mapMedication(row: any): Medication {
     dosage: row.dosage,
     form: row.form,
     instructions: row.instructions,
+    doctorContact: row.doctor_contact,
+    pharmacyContact: row.pharmacy_contact,
+    missedDoseGuidance: row.missed_dose_guidance,
     startDate: row.start_date,
     endDate: row.end_date,
     isActive: row.is_active,
     createdAt: row.created_at,
     updatedAt: row.updated_at
+  };
+}
+
+function mapUser(row: any): User {
+  return {
+    id: row.id,
+    displayName: row.display_name,
+    timezone: row.timezone,
+    notificationsEnabled: row.notifications_enabled,
+    createdAt: row.created_at
   };
 }
 
@@ -168,6 +183,39 @@ async function withTransaction<T>(fn: (db: SQLiteDatabase) => Promise<T>): Promi
   }
 }
 
+export async function upsertPrimaryUser(input: UpsertUserInput): Promise<User> {
+  const displayName = assertNonEmptyString(input.displayName, 'displayName');
+  const timezone = assertNonEmptyString(input.timezone, 'timezone');
+  const notificationsEnabled = input.notificationsEnabled === 1 ? 1 : 0;
+  const id = input.id ?? 'primary-user';
+  const createdAt = nowMs();
+
+  await initDb();
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO users (id, display_name, timezone, notifications_enabled, created_at)
+     VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       display_name = excluded.display_name,
+       timezone = excluded.timezone,
+       notifications_enabled = excluded.notifications_enabled;`,
+    [id, displayName, timezone, notificationsEnabled, createdAt]
+  );
+
+  const row = await db.getFirstAsync<any>('SELECT * FROM users WHERE id = ? LIMIT 1;', [id]);
+  if (!row) {
+    throw Errors.NOT_FOUND();
+  }
+  return mapUser(row);
+}
+
+export async function getPrimaryUser(): Promise<User | null> {
+  await initDb();
+  const db = await getDb();
+  const row = await db.getFirstAsync<any>('SELECT * FROM users ORDER BY created_at ASC LIMIT 1;');
+  return row ? mapUser(row) : null;
+}
+
 export async function createMedication(input: CreateMedicationInput): Promise<Medication> {
   validateMedicationInput(input, false);
 
@@ -177,6 +225,9 @@ export async function createMedication(input: CreateMedicationInput): Promise<Me
   const dosage = assertNullableString(input.dosage, 'dosage');
   const form = input.form == null ? null : assertInSet(input.form, 'form', FORM_VALUES);
   const instructions = assertNullableString(input.instructions, 'instructions');
+  const doctorContact = assertNullableString(input.doctorContact, 'doctorContact');
+  const pharmacyContact = assertNullableString(input.pharmacyContact, 'pharmacyContact');
+  const missedDoseGuidance = assertNullableString(input.missedDoseGuidance, 'missedDoseGuidance');
   const startDate = assertOptionalUnixMs(input.startDate, 'startDate');
   const endDate = assertOptionalUnixMs(input.endDate, 'endDate');
   const isActive = input.isActive ?? 1;
@@ -185,9 +236,9 @@ export async function createMedication(input: CreateMedicationInput): Promise<Me
   await initDb();
   const db = await getDb();
   await db.runAsync(
-    `INSERT INTO medications (id, user_id, name, dosage, form, instructions, start_date, end_date, is_active, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-    [id, userId, name, dosage, form, instructions, startDate, endDate, isActive, timestamp, timestamp]
+    `INSERT INTO medications (id, user_id, name, dosage, form, instructions, doctor_contact, pharmacy_contact, missed_dose_guidance, start_date, end_date, is_active, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+    [id, userId, name, dosage, form, instructions, doctorContact, pharmacyContact, missedDoseGuidance, startDate, endDate, isActive, timestamp, timestamp]
   );
 
   const medication = await getMedicationById(id);
@@ -230,6 +281,12 @@ export async function updateMedication(id: string, patch: UpdateMedicationPatch)
     dosage: patch.dosage !== undefined ? assertNullableString(patch.dosage, 'dosage') : existing.dosage,
     form: patch.form !== undefined ? (patch.form == null ? null : assertInSet(patch.form, 'form', FORM_VALUES)) : existing.form,
     instructions: patch.instructions !== undefined ? assertNullableString(patch.instructions, 'instructions') : existing.instructions,
+    doctorContact: patch.doctorContact !== undefined ? assertNullableString(patch.doctorContact, 'doctorContact') : existing.doctorContact,
+    pharmacyContact: patch.pharmacyContact !== undefined ? assertNullableString(patch.pharmacyContact, 'pharmacyContact') : existing.pharmacyContact,
+    missedDoseGuidance:
+      patch.missedDoseGuidance !== undefined
+        ? assertNullableString(patch.missedDoseGuidance, 'missedDoseGuidance')
+        : existing.missedDoseGuidance,
     startDate: patch.startDate !== undefined ? assertOptionalUnixMs(patch.startDate, 'startDate') : existing.startDate,
     endDate: patch.endDate !== undefined ? assertOptionalUnixMs(patch.endDate, 'endDate') : existing.endDate,
     isActive: patch.isActive !== undefined ? patch.isActive : existing.isActive,
@@ -242,7 +299,7 @@ export async function updateMedication(id: string, patch: UpdateMedicationPatch)
   const db = await getDb();
   await db.runAsync(
     `UPDATE medications
-     SET user_id = ?, name = ?, dosage = ?, form = ?, instructions = ?, start_date = ?, end_date = ?, is_active = ?, updated_at = ?
+     SET user_id = ?, name = ?, dosage = ?, form = ?, instructions = ?, doctor_contact = ?, pharmacy_contact = ?, missed_dose_guidance = ?, start_date = ?, end_date = ?, is_active = ?, updated_at = ?
      WHERE id = ?;`,
     [
       merged.userId,
@@ -250,6 +307,9 @@ export async function updateMedication(id: string, patch: UpdateMedicationPatch)
       merged.dosage,
       merged.form,
       merged.instructions,
+      merged.doctorContact,
+      merged.pharmacyContact,
+      merged.missedDoseGuidance,
       merged.startDate,
       merged.endDate,
       merged.isActive,

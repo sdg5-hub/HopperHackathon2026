@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 type Migration = {
   version: number;
@@ -68,6 +68,16 @@ export const migrations: Migration[] = [
         ON dose_events (medication_id, scheduled_for);`,
       `CREATE INDEX IF NOT EXISTS idx_dose_events_status_scheduled_for
         ON dose_events (status, scheduled_for);`
+    ]
+  },
+  {
+    version: 2,
+    statements: [
+      `ALTER TABLE users ADD COLUMN timezone TEXT;`,
+      `ALTER TABLE users ADD COLUMN notifications_enabled INTEGER NOT NULL DEFAULT 0;`,
+      `ALTER TABLE medications ADD COLUMN doctor_contact TEXT;`,
+      `ALTER TABLE medications ADD COLUMN pharmacy_contact TEXT;`,
+      `ALTER TABLE medications ADD COLUMN missed_dose_guidance TEXT;`
     ]
   }
 ];

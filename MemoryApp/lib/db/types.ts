@@ -27,6 +27,8 @@ export type SchedulePayload = FixedTimesPayload | EveryXHoursPayload | DaysOfWee
 export type User = {
   id: string;
   displayName: string | null;
+  timezone: string | null;
+  notificationsEnabled: 0 | 1;
   createdAt: number;
 };
 
@@ -37,6 +39,9 @@ export type Medication = {
   dosage: string | null;
   form: MedicationForm | null;
   instructions: string | null;
+  doctorContact: string | null;
+  pharmacyContact: string | null;
+  missedDoseGuidance: string | null;
   startDate: number | null;
   endDate: number | null;
   isActive: 0 | 1;
@@ -81,6 +86,9 @@ export type CreateMedicationInput = {
   dosage?: string | null;
   form?: MedicationForm | null;
   instructions?: string | null;
+  doctorContact?: string | null;
+  pharmacyContact?: string | null;
+  missedDoseGuidance?: string | null;
   startDate?: number | null;
   endDate?: number | null;
   isActive?: 0 | 1;
@@ -110,4 +118,11 @@ export type CreateDoseEventInput = {
   status?: DoseStatus;
   takenAt?: number | null;
   note?: string | null;
+};
+
+export type UpsertUserInput = {
+  id?: string;
+  displayName: string;
+  timezone: string;
+  notificationsEnabled: 0 | 1;
 };
