@@ -1,5 +1,5 @@
 import * as Crypto from 'expo-crypto';
-import { Errors } from '@/lib/db/errors';
+import { Errors } from './errors';
 
 export function generateId(): string {
   return Crypto.randomUUID();

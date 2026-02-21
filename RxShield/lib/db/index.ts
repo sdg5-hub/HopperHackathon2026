@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { runMigrations } from '@/lib/db/migrations';
+import { runMigrations } from './migrations';
 
 const DB_NAME = 'rxshield.db';
 
@@ -34,6 +34,6 @@ export async function resetDbForDev(): Promise<void> {
 
 export async function seedDemoData(): Promise<void> {
   await initDb();
-  const { seedDemoDataImpl } = await import('@/lib/db/queries');
+  const { seedDemoDataImpl } = await import('./queries');
   await seedDemoDataImpl();
 }

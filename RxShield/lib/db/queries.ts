@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
-import { getDb, initDb } from '@/lib/db/index';
-import { Errors } from '@/lib/db/errors';
+import { getDb, initDb } from './index';
+import { Errors } from './errors';
 import {
   assertInSet,
   assertNonEmptyString,
@@ -13,7 +13,7 @@ import {
   jsonSerialize,
   nowMs,
   toSnakeCaseLabel
-} from '@/lib/db/utils';
+} from './utils';
 import type {
   CreateDoseEventInput,
   CreateMedicationInput,
@@ -26,7 +26,7 @@ import type {
   UpdateMedicationPatch,
   UpdateSchedulePatch,
   WarningTag
-} from '@/lib/db/types';
+} from './types';
 
 const FORM_VALUES = ['pill', 'liquid', 'injection', 'other'] as const;
 const SCHEDULE_VALUES = ['fixed_times', 'every_x_hours', 'days_of_week', 'prn'] as const;

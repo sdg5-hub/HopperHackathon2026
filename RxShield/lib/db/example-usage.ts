@@ -1,5 +1,5 @@
-import { initDb, seedDemoData } from '@/lib/db';
-import { listMedications } from '@/lib/db/queries';
+import { initDb, seedDemoData } from './index';
+import { listMedications } from './queries';
 
 export async function runDbExample(): Promise<void> {
   await initDb();

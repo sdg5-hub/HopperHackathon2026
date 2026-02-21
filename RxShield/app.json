@@ -2,7 +2,10 @@
   "expo": {
     "name": "RxShield",
     "slug": "rxshield",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
-
