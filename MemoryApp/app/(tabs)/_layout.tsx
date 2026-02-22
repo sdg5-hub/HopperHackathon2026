@@ -7,10 +7,12 @@ import { useRxDueModal } from '@/lib/notifications/hooks';
 import { getNotificationDbAdapter } from '@/lib/notifications/sqlite-adapter';
 import { getMedicationById, getMedicationWarningTags } from '@/lib/db/queries';
 import { runReliabilitySweep } from '@/lib/notifications/reliability';
+import { useTheme } from '@/theme';
 
 const db = getNotificationDbAdapter();
 
 export default function TabsLayout() {
+  const theme = useTheme();
   const due = useRxDueModal(db);
   const [medicationName, setMedicationName] = useState<string | undefined>();
   const [dosage, setDosage] = useState<string | undefined>();
@@ -63,9 +65,18 @@ export default function TabsLayout() {
       <Tabs
         screenOptions={{
           headerShown: true,
-          tabBarActiveTintColor: '#0F766E',
-          tabBarInactiveTintColor: '#64748B',
-          tabBarStyle: { height: 60, paddingBottom: 8, paddingTop: 6 }
+          headerStyle: { backgroundColor: theme.colors.surface },
+          headerTitleStyle: { color: theme.colors.text, fontWeight: '700' },
+          headerShadowVisible: false,
+          tabBarActiveTintColor: theme.colors.accent,
+          tabBarInactiveTintColor: theme.colors.mutedText,
+          tabBarStyle: {
+            height: 64,
+            paddingBottom: 10,
+            paddingTop: 8,
+            backgroundColor: theme.colors.surface,
+            borderTopColor: theme.colors.border,
+          }
         }}
       >
         <Tabs.Screen
@@ -75,9 +86,10 @@ export default function TabsLayout() {
             headerRight: () => (
               <Ionicons
                 name="alert-circle-outline"
-                size={22}
-                color="#0F766E"
+                size={theme.icon.lg}
+                color={theme.colors.accent}
                 style={{ marginRight: 12 }}
+                accessibilityLabel="Open emergency card"
                 onPress={() => router.push('/emergency-card')}
               />
             ),

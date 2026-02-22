@@ -1,4 +1,5 @@
 import { Text, TextInput, type KeyboardTypeOptions } from 'react-native';
+import { useTheme } from '@/theme';
 
 type FormFieldProps = {
   label: string;
@@ -17,23 +18,28 @@ export function FormField({
   multiline = false,
   keyboardType
 }: FormFieldProps) {
+  const theme = useTheme();
+
   return (
     <>
-      <Text style={{ color: '#334155', fontWeight: '600' }}>{label}</Text>
+      <Text style={{ color: theme.colors.text, fontWeight: '600' }}>{label}</Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
+        placeholderTextColor={theme.colors.mutedText}
         multiline={multiline}
         keyboardType={keyboardType}
         style={{
           borderWidth: 1,
-          borderColor: '#CBD5E1',
-          borderRadius: 12,
+          borderColor: theme.colors.border,
+          borderRadius: theme.radius.md,
           paddingHorizontal: 12,
           paddingVertical: multiline ? 10 : 9,
           minHeight: multiline ? 90 : undefined,
-          backgroundColor: '#FFFFFF'
+          height: multiline ? undefined : 44,
+          color: theme.colors.text,
+          backgroundColor: theme.colors.surface
         }}
       />
     </>

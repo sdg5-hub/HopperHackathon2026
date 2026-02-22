@@ -1,15 +1,22 @@
 import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useTheme } from '@/theme';
 
 export default function RootLayout() {
+  const theme = useTheme();
+
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(onboarding)" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="meds" />
-      <Stack.Screen name="safety-check" options={{ headerShown: true, title: 'Safety Check' }} />
-      <Stack.Screen name="emergency-card" options={{ headerShown: true, title: 'Emergency Card' }} />
-      <Stack.Screen name="missed-dose-guidance" options={{ headerShown: true, title: 'Missed Dose Guidance' }} />
-    </Stack>
+    <>
+      <StatusBar style={theme.isDark ? 'light' : 'dark'} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(onboarding)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="meds" />
+        <Stack.Screen name="safety-check" />
+        <Stack.Screen name="emergency-card" />
+        <Stack.Screen name="missed-dose-guidance" />
+      </Stack>
+    </>
   );
 }

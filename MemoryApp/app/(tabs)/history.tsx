@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { FlatList, Text, TextInput, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { AppCard } from '@/components/core/AppCard';
 import { FilterChipsRow } from '@/components/core/FilterChipsRow';
@@ -8,6 +9,7 @@ import { listHistoryDoseRows } from '@/lib/app/data';
 import { listMedications } from '@/lib/db/queries';
 import { AppButton } from '@/components/core/AppButton';
 import { router } from 'expo-router';
+import { useTheme } from '@/theme';
 
 type RangePreset = '7d' | '30d' | 'custom';
 
@@ -18,6 +20,7 @@ function parseISODateInput(value: string): number | null {
 }
 
 export default function HistoryTabScreen() {
+  const theme = useTheme();
   const [filterMedicationId, setFilterMedicationId] = useState<string>('all');
   const [rangePreset, setRangePreset] = useState<RangePreset>('7d');
   const [customFrom, setCustomFrom] = useState('');
@@ -76,34 +79,39 @@ export default function HistoryTabScreen() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F8FAFC', padding: 16, gap: 12 }}>
-      <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A' }}>History</Text>
-
+    <View style={{ flex: 1, backgroundColor: theme.colors.background, padding: 16, gap: 12 }}>
       <AppCard>
-        <Text style={{ fontWeight: '700', color: '#0F172A' }}>Date range</Text>
+        <Text style={{ ...theme.typography.title, color: theme.colors.text }}>History</Text>
+        <Text style={{ ...theme.typography.body, color: theme.colors.mutedText }}>Review dose outcomes and follow-up guidance.</Text>
+      </AppCard>
+
+      <AppCard style={{ position: 'relative' }}>
+        <Text style={{ fontWeight: '700', color: theme.colors.text }}>Date range</Text>
         <FilterChipsRow options={rangeOptions} selectedKey={rangePreset} onSelect={(key) => setRangePreset(key as RangePreset)} />
         {rangePreset === 'custom' ? (
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TextInput
               accessibilityLabel="From date"
               placeholder="YYYY-MM-DD"
+              placeholderTextColor={theme.colors.mutedText}
               value={customFrom}
               onChangeText={setCustomFrom}
-              style={{ flex: 1, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 10, padding: 8, backgroundColor: '#fff' }}
+              style={{ flex: 1, borderWidth: 1, borderColor: theme.colors.border, borderRadius: 10, padding: 10, color: theme.colors.text, backgroundColor: theme.colors.surface }}
             />
             <TextInput
               accessibilityLabel="To date"
               placeholder="YYYY-MM-DD"
+              placeholderTextColor={theme.colors.mutedText}
               value={customTo}
               onChangeText={setCustomTo}
-              style={{ flex: 1, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 10, padding: 8, backgroundColor: '#fff' }}
+              style={{ flex: 1, borderWidth: 1, borderColor: theme.colors.border, borderRadius: 10, padding: 10, color: theme.colors.text, backgroundColor: theme.colors.surface }}
             />
           </View>
         ) : null}
       </AppCard>
 
       <AppCard>
-        <Text style={{ fontWeight: '700', color: '#0F172A' }}>Medication filter</Text>
+        <Text style={{ fontWeight: '700', color: theme.colors.text }}>Medication filter</Text>
         <FilterChipsRow options={medOptions} selectedKey={filterMedicationId} onSelect={setFilterMedicationId} />
       </AppCard>
 
@@ -114,18 +122,41 @@ export default function HistoryTabScreen() {
         contentContainerStyle={{ gap: 10, paddingBottom: 30 }}
         renderItem={({ item }) => {
           const status = (item.status === 'due' && item.scheduledFor < Date.now() - 5 * 60 * 1000 ? 'snoozed' : item.status) as DoseDisplayStatus;
+          const when = new Date(item.scheduledFor);
           return (
-            <AppCard>
-              <Text style={{ color: '#0F172A', fontWeight: '700' }}>{item.medicationName}</Text>
-              <Text style={{ color: '#475569' }}>
-                {new Date(item.scheduledFor).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-              </Text>
-              {item.takenAt ? (
-                <Text style={{ color: '#475569' }}>
-                  Taken: {new Date(item.takenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-              ) : null}
-              <StatusChip status={status} />
+            <AppCard style={{ gap: 10 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                  <View
+                    style={{
+                      minWidth: 72,
+                      borderRadius: theme.radius.md,
+                      backgroundColor: theme.colors.accentSoft,
+                      paddingHorizontal: 8,
+                      paddingVertical: 6,
+                    }}
+                  >
+                    <Text style={{ color: theme.colors.accent, fontWeight: '700', textAlign: 'center' }}>
+                      {when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                    <Text style={{ color: theme.colors.mutedText, fontSize: 12, textAlign: 'center' }}>
+                      {when.toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: theme.colors.text, fontWeight: '700' }}>{item.medicationName}</Text>
+                    <Text style={{ color: theme.colors.mutedText }}>
+                      {item.dosage ?? 'Dose not set'}
+                    </Text>
+                    {item.takenAt ? (
+                      <Text style={{ color: theme.colors.mutedText }}>
+                        Taken {new Date(item.takenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </Text>
+                    ) : null}
+                  </View>
+                </View>
+                <StatusChip status={status} />
+              </View>
               {(item.status === 'missed' || item.status === 'skipped') ? (
                 <AppButton label="What should I do?" tone="secondary" onPress={() => router.push({ pathname: '/missed-dose-guidance', params: { medicationId: item.medicationId } })} />
               ) : null}
@@ -134,7 +165,10 @@ export default function HistoryTabScreen() {
         }}
         ListEmptyComponent={
           <AppCard>
-            <Text style={{ color: '#64748B' }}>No dose events in this range.</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ionicons name="time-outline" size={20} color={theme.colors.mutedText} />
+              <Text style={{ color: theme.colors.mutedText }}>No dose events in this range.</Text>
+            </View>
           </AppCard>
         }
       />

@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, ScrollView, Share } from 'react-native';
+import { Alert, Share, Text, View } from 'react-native';
 import { AppButton } from '@/components/core/AppButton';
+import { Callout } from '@/components/core/Callout';
 import { EmergencyCardWidget } from '@/components/core/EmergencyCardWidget';
 import { FormField } from '@/components/core/FormField';
 import { AppCard } from '@/components/core/AppCard';
+import { Screen } from '@/components/core/Screen';
 import { buildEmergencySummaryText, getEmergencyInfo, saveEmergencyInfo } from '@/lib/app/emergency';
 import { listMedicationsWithMeta } from '@/lib/app/data';
+import { useTheme } from '@/theme';
 
 export default function EmergencyCardScreen() {
+  const theme = useTheme();
   const [name, setName] = useState('');
   const [allergies, setAllergies] = useState('');
   const [conditions, setConditions] = useState('');
@@ -46,8 +50,14 @@ export default function EmergencyCardScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={{ padding: 16, gap: 12 }}>
+    <Screen
+      title="Emergency Card"
+      subtitle="Keep this visible-ready for urgent situations."
+      canGoBack
+      fallbackRoute="/(tabs)"
+    >
       <EmergencyCardWidget data={{ name, allergies, conditions, contactName, contactPhone }} medsSummary={medsSummary} />
+      <Callout tone="danger">In an emergency, call local emergency services first.</Callout>
 
       <AppCard>
         <FormField label="Name" value={name} onChangeText={setName} />
@@ -57,8 +67,11 @@ export default function EmergencyCardScreen() {
         <FormField label="Emergency Contact Phone" value={contactPhone} onChangeText={setContactPhone} keyboardType="phone-pad" />
       </AppCard>
 
-      <AppButton label="Save Emergency Card" onPress={onSave} />
-      <AppButton label="Share Emergency Summary" tone="secondary" onPress={onShare} />
-    </ScrollView>
+      <View style={{ gap: theme.spacing[2] }}>
+        <Text style={{ color: theme.colors.mutedText, fontWeight: '600' }}>One-tap share</Text>
+        <AppButton label="Share Emergency Summary" onPress={onShare} />
+        <AppButton label="Save Emergency Card" tone="secondary" onPress={onSave} />
+      </View>
+    </Screen>
   );
 }

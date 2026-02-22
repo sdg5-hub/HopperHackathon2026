@@ -1,5 +1,7 @@
 import { Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from './AppButton';
+import { useTheme } from '@/theme';
 
 type EmptyStateProps = {
   title: string;
@@ -9,19 +11,22 @@ type EmptyStateProps = {
 };
 
 export function EmptyState({ title, description, ctaLabel, onPressCta }: EmptyStateProps) {
+  const theme = useTheme();
+
   return (
     <View
       style={{
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
+        backgroundColor: theme.colors.surface,
+        borderRadius: theme.radius.lg,
         borderWidth: 1,
-        borderColor: '#E2E8F0',
+        borderColor: theme.colors.border,
         padding: 16,
         gap: 8
       }}
     >
-      <Text style={{ color: '#0F172A', fontSize: 16, fontWeight: '700' }}>{title}</Text>
-      <Text style={{ color: '#475569' }}>{description}</Text>
+      <Ionicons name="sparkles-outline" size={24} color={theme.colors.accent} />
+      <Text style={{ color: theme.colors.text, fontSize: 16, fontWeight: '700' }}>{title}</Text>
+      <Text style={{ color: theme.colors.mutedText }}>{description}</Text>
       {ctaLabel && onPressCta ? <AppButton label={ctaLabel} onPress={onPressCta} /> : null}
     </View>
   );

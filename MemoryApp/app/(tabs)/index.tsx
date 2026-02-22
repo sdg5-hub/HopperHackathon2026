@@ -1,17 +1,23 @@
 import { useCallback, useMemo, useState } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, router } from 'expo-router';
 import { AppButton } from '@/components/core/AppButton';
 import { AppCard } from '@/components/core/AppCard';
 import { EmptyState } from '@/components/core/EmptyState';
 import { StatsCard } from '@/components/core/StatsCard';
 import { StatusChip } from '@/components/core/StatusChip';
+import CalendarComponent from '@/components/calendar-component';
+import AddReminderForm from '@/components/add-reminder-form';
+import DateCard from '@/components/date-card';
 import { listTodayDoseRows } from '@/lib/app/data';
 import { listDoseEventsForMedication, listMedications } from '@/lib/db/queries';
 import { getNotificationDbAdapter } from '@/lib/notifications/sqlite-adapter';
 import { resyncAllSchedules } from '@/lib/notifications/engine';
 import { buildDailyAdherenceSeries, computeSevenDayAdherence, computeStreak, computeTrendHint } from '@/lib/app/adherence';
 import { isDemoModeEnabled } from '@/lib/app/settings';
+import type { Reminder } from '@/types';
+import { useTheme } from '@/theme';
 
 const db = getNotificationDbAdapter();
 
@@ -22,6 +28,7 @@ function getBucket(hour: number): 'Morning' | 'Afternoon' | 'Evening' {
 }
 
 export default function HomeTabScreen() {
+  const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [dueNowCount, setDueNowCount] = useState(0);
@@ -30,6 +37,26 @@ export default function HomeTabScreen() {
   const [sevenDayPct, setSevenDayPct] = useState(0);
   const [trendHint, setTrendHint] = useState('Trend unavailable yet.');
   const [demoEnabled, setDemoEnabled] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [calendarReminders, setCalendarReminders] = useState<Record<string, Reminder[]>>({
+    '2026-02-21': [
+      { time: '08:30 AM', text: 'Take medicine' },
+      { time: '12:00 PM', text: 'Call caregiver' },
+    ],
+    '2026-02-22': [
+      { time: '10:00 AM', text: 'Walk in park' },
+      { time: '03:30 PM', text: 'Drink water' },
+    ],
+  });
+
+  const handleAddReminder = useCallback((date: string, reminder: Reminder) => {
+    setCalendarReminders((prev) => {
+      const next = { ...prev };
+      const existing = next[date] ?? [];
+      next[date] = [...existing, reminder];
+      return next;
+    });
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -103,22 +130,31 @@ export default function HomeTabScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#F8FAFC' }}
-      contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 28 }}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      contentContainerStyle={{ padding: theme.spacing[4], gap: theme.spacing[3], paddingBottom: 28 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onResync} />}
     >
+      <AppCard style={{ backgroundColor: theme.colors.surface, gap: theme.spacing[2] }}>
+        <Text style={{ ...theme.typography.caption, color: theme.colors.mutedText }}>
+          {new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
+        </Text>
+        <Text style={{ ...theme.typography.title, color: theme.colors.text }}>Welcome back</Text>
+        <Text style={{ ...theme.typography.body, color: theme.colors.mutedText }}>Track doses, keep momentum, and stay on schedule.</Text>
+      </AppCard>
+
       {demoEnabled ? (
-        <AppCard style={{ backgroundColor: '#ECFEFF', borderColor: '#67E8F9' }}>
-          <Text style={{ color: '#155E75', fontWeight: '700' }}>Demo loaded. Open History to filter by meds and show outcomes.</Text>
+        <AppCard style={{ backgroundColor: theme.colors.accentSoft, borderColor: theme.colors.accent }}>
+          <Text style={{ color: theme.colors.text, fontWeight: '700' }}>Demo loaded. Open History to filter by meds and show outcomes.</Text>
         </AppCard>
       ) : null}
 
       <StatsCard streakDays={streakDays} sevenDayAdherencePct={sevenDayPct} trendHint={trendHint} />
 
       {dueNowCount > 0 ? (
-        <AppCard style={{ borderColor: '#F59E0B', backgroundColor: '#FFFBEB' }}>
+        <AppCard style={{ borderColor: '#F59E0B', backgroundColor: '#FFFBEB', gap: theme.spacing[3] }}>
           <Text style={{ fontSize: 18, fontWeight: '700', color: '#92400E' }}>Due Now</Text>
           <Text style={{ color: '#92400E' }}>{dueNowCount} dose(s) need action.</Text>
+          <AppButton label="View Dose History" onPress={() => router.push('/(tabs)/history')} />
         </AppCard>
       ) : null}
 
@@ -132,21 +168,47 @@ export default function HomeTabScreen() {
         <EmptyState title="No doses scheduled today" description="Add your first medication to start reminders." ctaLabel="Add Medication" onPressCta={() => router.push('/meds/new')} />
       ) : (
         <AppCard>
-          <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F172A' }}>Today Timeline</Text>
+          <Text style={{ fontSize: 18, fontWeight: '700', color: theme.colors.text }}>Today Timeline</Text>
           {timelineByBucket.map(([bucket, items]) => (
             <View key={bucket} style={{ gap: 6 }}>
-              <Text style={{ color: '#334155', fontWeight: '700' }}>{bucket}</Text>
+              <Text style={{ color: theme.colors.mutedText, fontWeight: '700' }}>{bucket}</Text>
               {items.map((item) => (
-                <View key={item.key} style={{ borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 8 }}>
-                  <Text style={{ color: '#0F172A', fontWeight: '600' }}>{item.label}</Text>
-                  <Text style={{ color: '#475569' }}>{item.subtitle}</Text>
+                <Pressable
+                  key={item.key}
+                  style={({ pressed }) => ({
+                    borderTopWidth: 1,
+                    borderTopColor: theme.colors.border,
+                    paddingTop: 10,
+                    opacity: pressed ? 0.9 : 1,
+                  })}
+                >
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: theme.colors.text, fontWeight: '600' }}>{item.label}</Text>
+                      <Text style={{ color: theme.colors.mutedText }}>{item.subtitle}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={theme.colors.mutedText} />
+                  </View>
                   <StatusChip status={(item.status as any) || 'due'} />
-                </View>
+                </Pressable>
               ))}
             </View>
           ))}
         </AppCard>
       )}
+
+      <AppCard>
+        <Text style={{ fontSize: 18, fontWeight: '700', color: theme.colors.text }}>Personal Calendar</Text>
+        <CalendarComponent reminders={calendarReminders} selectedDate={selectedDate} onDateSelect={setSelectedDate} />
+        {selectedDate ? (
+          <>
+            <AddReminderForm selectedDate={selectedDate} onAddReminder={handleAddReminder} />
+            <DateCard date={selectedDate} reminders={calendarReminders[selectedDate] || []} />
+          </>
+        ) : (
+          <Text style={{ color: theme.colors.mutedText }}>Tap a day to add or view reminders.</Text>
+        )}
+      </AppCard>
     </ScrollView>
   );
 }

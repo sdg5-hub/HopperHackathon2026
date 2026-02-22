@@ -22,6 +22,7 @@ export function FilterChipsRow({ options, selectedKey, onSelect }: Props) {
             label={option.label}
             selected={selectedKey === option.key}
             onPress={() => onSelect(option.key)}
+            accessibilityLabel={`Filter ${option.label}`}
           />
         ))}
       </View>

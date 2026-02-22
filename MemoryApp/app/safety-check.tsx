@@ -1,12 +1,16 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { AppButton } from '@/components/core/AppButton';
 import { AppCard } from '@/components/core/AppCard';
+import { Callout } from '@/components/core/Callout';
+import { Screen } from '@/components/core/Screen';
 import { SeverityBadge } from '@/components/core/SeverityBadge';
 import { DISCLAIMERS } from '@/lib/app/constants';
 import { setSafetyAcknowledged } from '@/lib/app/settings';
+import { useTheme } from '@/theme';
 
 export default function SafetyCheckScreen() {
+  const theme = useTheme();
   const params = useLocalSearchParams<{ returnTo?: string }>();
 
   const onAccept = async () => {
@@ -19,18 +23,21 @@ export default function SafetyCheckScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={{ padding: 16, gap: 12 }}>
-      <Text style={{ fontSize: 26, fontWeight: '800', color: '#0F172A' }}>Safety Check</Text>
-
+    <Screen
+      title="Safety Check"
+      subtitle="Quick local guidance before you continue."
+      canGoBack
+      fallbackRoute="/(tabs)"
+    >
       <AppCard>
-        <Text style={{ fontWeight: '700', color: '#0F172A' }}>Local interaction rules</Text>
-        <Text style={{ color: '#475569' }}>- Avoid doubling doses unless your prescriber explicitly advised it.</Text>
-        <Text style={{ color: '#475569' }}>- Check interactions with alcohol, grapefruit, and OTC meds before combining.</Text>
-        <Text style={{ color: '#475569' }}>- If you experience severe symptoms (trouble breathing, swelling, fainting), seek emergency care.</Text>
+        <Text style={{ fontWeight: '700', color: theme.colors.text }}>Local interaction rules</Text>
+        <Text style={{ color: theme.colors.mutedText }}>- Avoid doubling doses unless your prescriber explicitly advised it.</Text>
+        <Text style={{ color: theme.colors.mutedText }}>- Check interactions with alcohol, grapefruit, and OTC meds before combining.</Text>
+        <Text style={{ color: theme.colors.mutedText }}>- If you experience severe symptoms (trouble breathing, swelling, fainting), seek emergency care.</Text>
       </AppCard>
 
       <AppCard>
-        <Text style={{ fontWeight: '700', color: '#0F172A' }}>Severity badges legend</Text>
+        <Text style={{ fontWeight: '700', color: theme.colors.text }}>Severity badges legend</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           <SeverityBadge level="emergency" />
           <SeverityBadge level="urgent" />
@@ -39,13 +46,11 @@ export default function SafetyCheckScreen() {
         </View>
       </AppCard>
 
-      <AppCard>
-        <Text style={{ color: '#7F1D1D', fontWeight: '700' }}>{DISCLAIMERS.NOT_MEDICAL_ADVICE}</Text>
-        <Text style={{ color: '#475569' }}>{DISCLAIMERS.NOT_EXHAUSTIVE}</Text>
-      </AppCard>
+      <Callout tone="info">{DISCLAIMERS.NOT_EXHAUSTIVE}</Callout>
+      <Callout tone="danger">{DISCLAIMERS.NOT_MEDICAL_ADVICE}</Callout>
 
       <AppButton label="I Understand" onPress={onAccept} />
       <AppButton label="View Emergency Card" tone="secondary" onPress={() => router.push('/emergency-card')} />
-    </ScrollView>
+    </Screen>
   );
 }

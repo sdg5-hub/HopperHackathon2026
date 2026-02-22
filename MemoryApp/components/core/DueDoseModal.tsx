@@ -2,6 +2,7 @@ import { Modal, Text, View } from 'react-native';
 import type { DoseEvent } from '@/lib/notifications/types';
 import { AppButton } from './AppButton';
 import { AppCard } from './AppCard';
+import { useTheme } from '@/theme';
 
 type DueDoseModalProps = {
   visible: boolean;
@@ -28,18 +29,20 @@ export function DueDoseModal({
   onSnooze,
   onClose
 }: DueDoseModalProps) {
+  const theme = useTheme();
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(15, 23, 42, 0.45)' }}>
-        <AppCard style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, gap: 10 }}>
-          <Text style={{ fontSize: 19, fontWeight: '700', color: '#0F172A' }}>Dose Due Now</Text>
-          <Text style={{ color: '#0F172A', fontWeight: '600' }}>
+      <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: theme.colors.overlay }}>
+        <AppCard style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, gap: 10, paddingBottom: 26 }}>
+          <Text style={{ fontSize: 19, fontWeight: '700', color: theme.colors.text }}>Dose Due Now</Text>
+          <Text style={{ color: theme.colors.text, fontWeight: '600' }}>
             {medicationName ?? 'Medication'}{dosage ? ` • ${dosage}` : ''}
           </Text>
-          {instructions ? <Text style={{ color: '#475569' }}>{instructions}</Text> : null}
+          {instructions ? <Text style={{ color: theme.colors.mutedText }}>{instructions}</Text> : null}
           {warningTags?.length ? <Text style={{ color: '#B45309' }}>Warnings: {warningTags.join(', ')}</Text> : null}
           {doseEvent ? (
-            <Text style={{ color: '#64748B', fontSize: 12 }}>Scheduled: {new Date(doseEvent.scheduled_for).toLocaleString()}</Text>
+            <Text style={{ color: theme.colors.mutedText, fontSize: 12 }}>Scheduled: {new Date(doseEvent.scheduled_for).toLocaleString()}</Text>
           ) : null}
 
           <AppButton label="Taken" onPress={onTaken} />
