@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { Alert, ScrollView, Switch, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import { useFocusEffect, router } from 'expo-router';
+import { useTheme } from '@/theme';
 import { AppButton } from '@/components/core/AppButton';
 import { AppCard } from '@/components/core/AppCard';
 import { FormField } from '@/components/core/FormField';
@@ -13,6 +14,7 @@ import { loadDemoDataAndNearReminder, clearDemoDataOnly } from '@/lib/app/demo';
 import { getAutoMissWindow, setAutoMissWindow } from '@/lib/notifications/reliability';
 
 export default function ProfileTabScreen() {
+  const theme = useTheme();
   const [displayName, setDisplayName] = useState('');
   const [emergencyContact, setEmergencyContact] = useState('');
   const [demoEnabled, setDemoEnabled] = useState(false);
@@ -119,8 +121,16 @@ export default function ProfileTabScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 28 }}>
-      <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A' }}>Profile & Settings</Text>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 28 }}
+    >
+      <AppCard>
+        <Text style={{ ...theme.typography.title, color: theme.colors.text }}>Profile & Settings</Text>
+        <Text style={{ ...theme.typography.body, color: theme.colors.mutedText }}>
+          Personal info, safety controls, demo mode, and app behavior.
+        </Text>
+      </AppCard>
 
       <AppCard>
         <FormField label="Display Name" value={displayName} onChangeText={setDisplayName} placeholder="Name" />
@@ -130,18 +140,23 @@ export default function ProfileTabScreen() {
       </AppCard>
 
       <AppCard>
-        <Text style={{ color: '#0F172A', fontWeight: '700' }}>Safety Check</Text>
-        <Text style={{ color: '#475569' }}>Acknowledged: {safetyAck ? 'Yes' : 'No'}</Text>
+        <Text style={{ color: theme.colors.text, fontWeight: '700' }}>Safety Check</Text>
+        <Text style={{ color: theme.colors.mutedText }}>Acknowledged: {safetyAck ? 'Yes' : 'No'}</Text>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ color: '#334155' }}>Re-show Safety Check on launch</Text>
-          <Switch value={reshowSafety} onValueChange={updateReshowSafety} />
+          <Text style={{ color: theme.colors.mutedText }}>Re-show Safety Check on launch</Text>
+          <Switch
+            value={reshowSafety}
+            onValueChange={updateReshowSafety}
+            trackColor={{ false: theme.colors.border, true: theme.colors.accentSoft }}
+            thumbColor={reshowSafety ? theme.colors.accent : '#F8FAFC'}
+          />
         </View>
         <AppButton label="Reset Safety Check acknowledgement" tone="secondary" onPress={onResetSafetyAck} />
       </AppCard>
 
       <AppCard>
-        <Text style={{ color: '#0F172A', fontWeight: '700' }}>Auto-mark missed</Text>
-        <Text style={{ color: '#475569' }}>Mark overdue doses as missed after:</Text>
+        <Text style={{ color: theme.colors.text, fontWeight: '700' }}>Auto-mark missed</Text>
+        <Text style={{ color: theme.colors.mutedText }}>Mark overdue doses as missed after:</Text>
         <FilterChipsRow
           options={[
             { key: '1h', label: '1h' },
@@ -155,22 +170,27 @@ export default function ProfileTabScreen() {
       </AppCard>
 
       <AppCard>
-        <Text style={{ color: '#0F172A', fontWeight: '700' }}>Demo</Text>
-        <Text style={{ color: '#475569' }}>Load demo data and a near-future reminder for judge walkthrough.</Text>
-        <Switch value={demoEnabled} onValueChange={onToggleDemo} />
+        <Text style={{ color: theme.colors.text, fontWeight: '700' }}>Demo</Text>
+        <Text style={{ color: theme.colors.mutedText }}>Load demo data and a near-future reminder for judge walkthrough.</Text>
+        <Switch
+          value={demoEnabled}
+          onValueChange={onToggleDemo}
+          trackColor={{ false: theme.colors.border, true: theme.colors.accentSoft }}
+          thumbColor={demoEnabled ? theme.colors.accent : '#F8FAFC'}
+        />
         <AppButton label="Load demo data + schedule near-future reminder" tone="secondary" onPress={() => onToggleDemo(true)} />
         <AppButton label="Clear demo data" tone="secondary" onPress={onClearDemo} />
       </AppCard>
 
       <AppCard>
-        <Text style={{ color: '#7F1D1D', fontWeight: '700' }}>Danger Zone</Text>
+        <Text style={{ color: theme.colors.danger, fontWeight: '700' }}>Danger Zone</Text>
         <AppButton label="Clear All Data" tone="danger" onPress={onClearAll} />
       </AppCard>
 
       <AppCard>
-        <Text style={{ color: '#0F172A', fontWeight: '700' }}>About</Text>
-        <Text style={{ color: '#475569' }}>Version: {Constants.expoConfig?.version ?? 'dev'}</Text>
-        <Text style={{ color: '#475569' }}>Not medical advice. Guidance is not exhaustive.</Text>
+        <Text style={{ color: theme.colors.text, fontWeight: '700' }}>About</Text>
+        <Text style={{ color: theme.colors.mutedText }}>Version: {Constants.expoConfig?.version ?? 'dev'}</Text>
+        <Text style={{ color: theme.colors.mutedText }}>Not medical advice. Guidance is not exhaustive.</Text>
       </AppCard>
     </ScrollView>
   );
