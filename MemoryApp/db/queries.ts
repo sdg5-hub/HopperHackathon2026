@@ -1,5 +1,5 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
-import { getDb, initDb } from './db';
+import { getDb } from './db';
 import { Errors } from './errors';
 import {
   assertInSet,
@@ -155,7 +155,6 @@ function validateSchedulePayload(type: ScheduleType, payload: SchedulePayload): 
 }
 
 async function withTransaction<T>(fn: (db: SQLiteDatabase) => Promise<T>): Promise<T> {
-  await initDb();
   const db = await getDb();
   await db.execAsync('BEGIN;');
   try {
@@ -182,7 +181,6 @@ export async function createMedication(input: CreateMedicationInput): Promise<Me
   const isActive = input.isActive ?? 1;
   const userId = input.userId ?? null;
 
-  await initDb();
   const db = await getDb();
   await db.runAsync(
     `INSERT INTO medications (id, user_id, name, dosage, form, instructions, start_date, end_date, is_active, created_at, updated_at)
@@ -198,14 +196,12 @@ export async function createMedication(input: CreateMedicationInput): Promise<Me
 }
 
 export async function getMedicationById(id: string): Promise<Medication | null> {
-  await initDb();
   const db = await getDb();
   const row = await db.getFirstAsync<any>('SELECT * FROM medications WHERE id = ? LIMIT 1;', [id]);
   return row ? mapMedication(row) : null;
 }
 
 export async function listMedications(activeOnly = false): Promise<Medication[]> {
-  await initDb();
   const db = await getDb();
   const sql = activeOnly
     ? 'SELECT * FROM medications WHERE is_active = 1 ORDER BY created_at DESC;'
@@ -237,8 +233,6 @@ export async function updateMedication(id: string, patch: UpdateMedicationPatch)
     updatedAt: nowMs(),
     id: existing.id
   };
-
-  await initDb();
   const db = await getDb();
   await db.runAsync(
     `UPDATE medications
@@ -266,7 +260,6 @@ export async function deactivateMedication(id: string): Promise<void> {
 }
 
 export async function deleteMedication(id: string): Promise<void> {
-  await initDb();
   const db = await getDb();
   const result = await db.runAsync('DELETE FROM medications WHERE id = ?;', [id]);
   if ((result.changes ?? 0) === 0) {
@@ -287,8 +280,6 @@ export async function createSchedule<T extends SchedulePayload>(
   const id = generateId();
   const timestamp = nowMs();
   const serialized = jsonSerialize(payload);
-
-  await initDb();
   const db = await getDb();
   await ensureMedicationExists(db, medicationId);
 
@@ -306,14 +297,12 @@ export async function createSchedule<T extends SchedulePayload>(
 }
 
 export async function listSchedulesForMedication(medicationId: string): Promise<Schedule[]> {
-  await initDb();
   const db = await getDb();
   const rows = await db.getAllAsync<any>('SELECT * FROM schedules WHERE medication_id = ? ORDER BY created_at ASC;', [medicationId]);
   return rows.map(mapSchedule);
 }
 
 export async function updateSchedule<T extends SchedulePayload>(id: string, patch: UpdateSchedulePatch<T>): Promise<Schedule> {
-  await initDb();
   const db = await getDb();
   const existingRow = await db.getFirstAsync<any>('SELECT * FROM schedules WHERE id = ? LIMIT 1;', [id]);
   if (!existingRow) {
@@ -345,7 +334,6 @@ export async function updateSchedule<T extends SchedulePayload>(id: string, patc
 }
 
 export async function deleteSchedule(id: string): Promise<void> {
-  await initDb();
   const db = await getDb();
   const result = await db.runAsync('DELETE FROM schedules WHERE id = ?;', [id]);
   if ((result.changes ?? 0) === 0) {
@@ -356,8 +344,6 @@ export async function deleteSchedule(id: string): Promise<void> {
 export async function upsertWarningTag(label: string): Promise<WarningTag> {
   const normalized = toSnakeCaseLabel(assertNonEmptyString(label, 'label'));
   const id = generateId();
-
-  await initDb();
   const db = await getDb();
   await db.runAsync('INSERT INTO warning_tags (id, label) VALUES (?, ?) ON CONFLICT(label) DO NOTHING;', [id, normalized]);
 
@@ -395,7 +381,6 @@ export async function setMedicationWarningTags(medicationId: string, labels: str
 }
 
 export async function getMedicationWarningTags(medicationId: string): Promise<string[]> {
-  await initDb();
   const db = await getDb();
   const rows = await db.getAllAsync<{ label: string }>(
     `SELECT wt.label
@@ -418,8 +403,6 @@ export async function createDoseEvent(input: CreateDoseEventInput): Promise<Dose
 
   const id = generateId();
   const timestamp = nowMs();
-
-  await initDb();
   const db = await getDb();
   await ensureMedicationExists(db, medicationId);
   if (scheduleId) {
@@ -443,7 +426,6 @@ export async function listDoseEventsForDay(dateISO: string, timezone: string): P
   const tz = assertNonEmptyString(timezone, 'timezone');
   const { startMs, endMs } = getDayBoundsUtcMs(dateISO, tz);
 
-  await initDb();
   const db = await getDb();
   const rows = await db.getAllAsync<any>(
     `SELECT * FROM dose_events
@@ -455,12 +437,26 @@ export async function listDoseEventsForDay(dateISO: string, timezone: string): P
   return rows.map(mapDoseEvent);
 }
 
+export async function listDoseEventsInRange(startMs: number, endMs: number): Promise<DoseEvent[]> {
+  const start = assertUnixMs(startMs, 'startMs');
+  const end = assertUnixMs(endMs, 'endMs');
+
+  const db = await getDb();
+  const rows = await db.getAllAsync<any>(
+    `SELECT * FROM dose_events
+     WHERE scheduled_for >= ? AND scheduled_for < ?
+     ORDER BY scheduled_for ASC;`,
+    [start, end]
+  );
+
+  return rows.map(mapDoseEvent);
+}
+
 export async function listDoseEventsForMedication(medicationId: string, limit = 50, offset = 0): Promise<DoseEvent[]> {
   const medId = assertNonEmptyString(medicationId, 'medicationId');
   const safeLimit = Math.max(1, Math.floor(limit));
   const safeOffset = Math.max(0, Math.floor(offset));
 
-  await initDb();
   const db = await getDb();
   const rows = await db.getAllAsync<any>(
     `SELECT * FROM dose_events
@@ -481,7 +477,6 @@ async function updateDoseStatus(
   assertNonEmptyString(doseEventId, 'doseEventId');
   assertInSet(status, 'status', DOSE_STATUS_VALUES);
 
-  await initDb();
   const db = await getDb();
   const existing = await db.getFirstAsync<{ id: string }>('SELECT id FROM dose_events WHERE id = ? LIMIT 1;', [doseEventId]);
   if (!existing) {
@@ -580,3 +575,4 @@ export async function seedDemoDataImpl(): Promise<void> {
 export function decodeSchedulePayload<T extends SchedulePayload>(schedule: Schedule): T {
   return jsonParse<T>(schedule.payloadJson);
 }
+

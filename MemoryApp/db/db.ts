@@ -7,15 +7,14 @@ let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 export async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (!dbPromise) {
-    dbPromise = SQLite.openDatabaseAsync(DB_NAME);
+    dbPromise = (async () => {
+      const db = await SQLite.openDatabaseAsync(DB_NAME);
+      await db.execAsync('PRAGMA foreign_keys = ON;');
+      await runMigrations(db);
+      return db;
+    })();
   }
   return dbPromise;
-}
-
-export async function initDb(): Promise<void> {
-  const db = await getDb();
-  await db.execAsync('PRAGMA foreign_keys = ON;');
-  await runMigrations(db);
 }
 
 export async function resetDbForDev(): Promise<void> {
@@ -33,7 +32,6 @@ export async function resetDbForDev(): Promise<void> {
 }
 
 export async function seedDemoData(): Promise<void> {
-  await initDb();
   const { seedDemoDataImpl } = await import('./queries');
   await seedDemoDataImpl();
 }

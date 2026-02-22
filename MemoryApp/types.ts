@@ -8,10 +8,10 @@ export type MedicationForm = 'pill' | 'liquid' | 'injection' | 'other';
 export type ScheduleType = 'fixed_times' | 'every_x_hours' | 'days_of_week' | 'prn';
 
 export enum DoseStatus {
-  DUE,
-  TAKEN,
-  SKIPPED,
-  MISSED,
+  DUE = 'due',
+  TAKEN = 'taken',
+  SKIPPED = 'skipped',
+  MISSED = 'missed',
 }
 
 

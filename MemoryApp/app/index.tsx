@@ -1,66 +1,95 @@
-import React, { useState } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import Clock from '@/components/clock';
 import CalendarComponent from '@/components/calendar-component';
 import AddReminderForm from '@/components/add-reminder-form';
 import DateCard from '@/components/date-card';
 import type { Reminder } from '@/types';
 import HistoryScreen from './history';
+import {
+  initializeDatabase,
+  loadRemindersFromDb,
+  addReminderToDb,
+  getDemoReminders,
+  type ReminderItem,
+  type RemindersByDate,
+} from '@/services/reminderService';
 
-const parseReminderDate = (date: string, time: string) => {
-  // Expect date in YYYY-MM-DD
-  const parts = date.split('-').map((v) => Number(v));
-  if (parts.length !== 3 || parts.some((v) => Number.isNaN(v))) return null;
-
-  const [year, month, day] = parts;
-
-  let hours = 0;
-  let minutes = 0;
-
-  const trimmedTime = time.trim();
-  if (trimmedTime) {
-    const match = /^(\d{1,2}):(\d{2})(?:\s*([AaPp][Mm]))?$/.exec(trimmedTime);
-    if (!match) return null;
-
-    hours = Number(match[1]);
-    minutes = Number(match[2]);
-
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
-
-    const meridian = match[3]?.toLowerCase();
-    if (meridian) {
-      hours = hours % 12;
-      if (meridian === 'pm') hours += 12;
-    }
-  }
-
-  return new Date(year, month - 1, day, hours, minutes, 0, 0);
-};
+const USE_DATABASE = true; // Toggle to switch between DB and demo data
 
 export default function HomeScreen() {
   const [selectedDate, setSelectedDate] = useState('');
   const [activeView, setActiveView] = useState<'calendar' | 'history'>('calendar');
-  const [reminders, setReminders] = useState<Record<string, Reminder[]>>({
-    '2026-02-21': [
-      { time: '08:30 AM', text: 'Take medicine' },
-      { time: '12:00 PM', text: 'Call caregiver' },
-    ],
-    '2026-02-22': [
-      { time: '10:00 AM', text: 'Walk in park' },
-      { time: '03:30 PM', text: 'Drink water' },
-    ],
-  });
+  const [reminders, setReminders] = useState<RemindersByDate>(getDemoReminders());
+  const [loading, setLoading] = useState(false);
+  const [dbInitialized, setDbInitialized] = useState(false);
 
-  const handleAddReminder = (date: string, reminder: Reminder) => {
-    const reminderDate = parseReminderDate(date, reminder.time);
-    if (!reminderDate) return;
+  // Initialize database on mount
+  useEffect(() => {
+    if (!USE_DATABASE) return;
 
-    setReminders((prev) => {
-      const updated = { ...prev };
-      if (!updated[date]) updated[date] = [];
-      updated[date].push(reminder);
-      return updated;
-    });
+    const init = async () => {
+      try {
+        setLoading(true);
+        await initializeDatabase();
+        setDbInitialized(true);
+        await loadReminders();
+      } catch (error) {
+        console.error('Failed to initialize database:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, []);
+
+  // Load reminders from DB for a date range
+  const loadReminders = async () => {
+    if (!USE_DATABASE) return;
+
+    try {
+      const today = new Date();
+      const startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1); // 1 month ago
+      const endDate = new Date(today.getFullYear(), today.getMonth() + 2, 0); // 2 months ahead
+
+      const dbReminders = await loadRemindersFromDb(startDate, endDate);
+      setReminders(dbReminders);
+    } catch (error) {
+      console.error('Failed to load reminders:', error);
+    }
+  };
+
+  const handleAddReminder = async (date: string, reminder: Reminder) => {
+    try {
+      if (USE_DATABASE && dbInitialized) {
+        // Add to database
+        const newReminder = await addReminderToDb(date, reminder.time, reminder.text);
+        
+        // Update local state
+        setReminders((prev) => {
+          const updated = { ...prev };
+          if (!updated[date]) updated[date] = [];
+          updated[date].push(newReminder);
+          return updated;
+        });
+      } else {
+        // Fallback to demo mode
+        setReminders((prev) => {
+          const updated = { ...prev };
+          if (!updated[date]) updated[date] = [];
+          updated[date].push({
+            id: `demo-${Date.now()}`,
+            time: reminder.time,
+            text: reminder.text,
+          });
+          return updated;
+        });
+      }
+    } catch (error) {
+      console.error('Failed to add reminder:', error);
+      alert('Failed to add reminder. Please try again.');
+    }
   };
 
   return (
@@ -80,7 +109,12 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {activeView === 'calendar' ? (
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2f6fe6" />
+          <Text style={styles.loadingText}>Loading reminders...</Text>
+        </View>
+      ) : activeView === 'calendar' ? (
         <ScrollView style={styles.calendarScroll}>
           <Clock />
           <CalendarComponent reminders={reminders} selectedDate={selectedDate} onDateSelect={setSelectedDate} />
@@ -125,5 +159,15 @@ const styles = StyleSheet.create({
   },
   calendarScroll: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
   },
 });
