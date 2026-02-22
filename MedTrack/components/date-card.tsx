@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Reminder } from '@/types';
+import { useTheme } from '@/theme';
 
 type DateCardProps = {
   date: string;
@@ -8,11 +9,21 @@ type DateCardProps = {
 };
 
 export default function DateCard({ date, reminders }: DateCardProps) {
+  const theme = useTheme();
+
   return (
-    <View style={styles.card}>
-      <Text style={styles.dateText}>{date}</Text>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.border,
+        },
+      ]}
+    >
+      <Text style={[styles.dateText, { color: theme.colors.text }]}>{date}</Text>
       {reminders.map((r, i) => (
-        <Text key={i} style={styles.reminderText}>
+        <Text key={i} style={[styles.reminderText, { color: theme.colors.mutedText }]}>
           {r.time} — {r.text}
         </Text>
       ))}
@@ -24,9 +35,8 @@ const styles = StyleSheet.create({
   card: {
     padding: 15,
     borderRadius: 8,
-    backgroundColor: '#f0f0f0',
+    borderWidth: 1,
     marginVertical: 8,
-    marginHorizontal: 10,
   },
   dateText: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
   reminderText: { fontSize: 16, marginBottom: 4 },

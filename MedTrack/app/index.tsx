@@ -9,7 +9,7 @@ import { runReliabilitySweep } from '@/lib/notifications/reliability';
 import { loadDemoDataAndNearReminder } from '@/lib/app/demo';
 
 export default function LaunchGateScreen() {
-  const [status, setStatus] = useState('Starting RxShield...');
+  const [status, setStatus] = useState('Starting MedTrack...');
 
   useEffect(() => {
     let alive = true;
@@ -62,7 +62,7 @@ export default function LaunchGateScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
       <ActivityIndicator size="large" color="#0F766E" />
-      <Text style={{ color: '#0F172A', fontSize: 20, fontWeight: '700' }}>RxShield</Text>
+      <Text style={{ color: '#0F172A', fontSize: 20, fontWeight: '700' }}>MedTrack</Text>
       <Text style={{ color: '#475569', textAlign: 'center' }}>{status}</Text>
     </View>
   );

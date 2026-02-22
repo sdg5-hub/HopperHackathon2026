@@ -81,7 +81,7 @@ export async function buildEmergencySummaryText(info: EmergencyInfo): Promise<st
   }
 
   return [
-    'RxShield Emergency Card',
+    'MedTrack Emergency Card',
     '',
     `Name: ${info.name || 'N/A'}`,
     `Allergies: ${info.allergies || 'N/A'}`,

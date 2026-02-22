@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { useTheme } from '@/theme';
 import { AppButton } from '@/components/core/AppButton';
 import { AppCard } from '@/components/core/AppCard';
 import { Chip } from '@/components/core/Chip';
@@ -13,6 +14,7 @@ import { getNotificationDbAdapter } from '@/lib/notifications/sqlite-adapter';
 const db = getNotificationDbAdapter();
 
 export default function MedsListScreen() {
+  const theme = useTheme();
   const [items, setItems] = useState<Awaited<ReturnType<typeof listMedicationsWithMeta>>>([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,11 +53,11 @@ export default function MedsListScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 100 }}>
         {loading ? (
           <AppCard>
-            <Text style={{ color: '#64748B' }}>Loading medications...</Text>
+            <Text style={{ color: theme.colors.mutedText }}>Loading medications...</Text>
           </AppCard>
         ) : items.length === 0 ? (
           <EmptyState
@@ -67,9 +69,9 @@ export default function MedsListScreen() {
         ) : (
           items.map((item) => (
             <AppCard key={item.medication.id}>
-              <Text style={{ color: '#0F172A', fontSize: 17, fontWeight: '700' }}>{item.medication.name}</Text>
-              <Text style={{ color: '#475569' }}>{item.medication.dosage ?? 'No dosage set'}</Text>
-              <Text style={{ color: '#334155' }}>
+              <Text style={{ color: theme.colors.text, fontSize: 17, fontWeight: '700' }}>{item.medication.name}</Text>
+              <Text style={{ color: theme.colors.mutedText }}>{item.medication.dosage ?? 'No dosage set'}</Text>
+              <Text style={{ color: theme.colors.mutedText }}>
                 Next dose:{' '}
                 {item.nextDose
                   ? new Date(item.nextDose.scheduledFor).toLocaleString([], {

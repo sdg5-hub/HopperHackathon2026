@@ -6,5 +6,5 @@ export async function runDbExample(): Promise<void> {
   await seedDemoData();
 
   const meds = await listMedications();
-  console.log('[RxShield] medications:', meds);
+  console.log('[MedTrack] medications:', meds);
 }

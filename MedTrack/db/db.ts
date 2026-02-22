@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import { runMigrations } from './migrations';
 
-const DB_NAME = 'rxshield.db';
+const DB_NAME = 'medtrack.db';
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 

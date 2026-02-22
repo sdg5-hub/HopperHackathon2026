@@ -6,8 +6,10 @@ import { AppButton } from '@/components/core/AppButton';
 import { AppCard } from '@/components/core/AppCard';
 import { FormField } from '@/components/core/FormField';
 import { upsertPrimaryUser } from '@/lib/db/queries';
+import { useTheme } from '@/theme';
 
 export default function OnboardingProfileScreen() {
+  const theme = useTheme();
   const [displayName, setDisplayName] = useState('');
   const [emergencyContact, setEmergencyContact] = useState('');
   const [saving, setSaving] = useState(false);
@@ -31,9 +33,9 @@ export default function OnboardingProfileScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={{ padding: 18, gap: 14 }}>
-      <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A' }}>Profile Setup</Text>
-      <Text style={{ color: '#475569' }}>These fields are optional and can be edited later in Profile.</Text>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }} contentContainerStyle={{ padding: 18, gap: 14 }}>
+      <Text style={{ ...theme.typography.title, color: theme.colors.text }}>Profile Setup</Text>
+      <Text style={{ color: theme.colors.mutedText }}>These fields are optional and can be edited later in Profile.</Text>
 
       <AppCard>
         <FormField label="Display Name" value={displayName} onChangeText={setDisplayName} placeholder="Your name" />

@@ -1,6 +1,6 @@
-# RxShield (MemoryApp)
+# MedTrack
 
-RxShield is a local-first Expo app for medication reminders, dose tracking, and safety-first workflows.
+MedTrack is a local-first Expo app for medication reminders, dose tracking, and safety-first workflows.
 
 ## Stack
 - Expo + React Native + TypeScript
@@ -10,7 +10,7 @@ RxShield is a local-first Expo app for medication reminders, dose tracking, and 
 
 ## Run
 ```bash
-cd "/Users/osamahgilani/Documents/New project/HopperHackathon2026/MemoryApp"
+cd "/Users/osamahgilani/Documents/New project/HopperHackathon2026/MedTrack"
 npm install
 npx expo start --lan --clear
 ```
@@ -56,6 +56,6 @@ npx expo start --tunnel --clear
 7. Open Safety Check and Emergency Card for clinical-safety walkthrough.
 
 ## Safety Notes
-- RxShield is **not medical advice**.
+- MedTrack is **not medical advice**.
 - Guidance is **not exhaustive**.
 - Always confirm medication decisions with a pharmacist or clinician.

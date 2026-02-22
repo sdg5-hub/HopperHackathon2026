@@ -23,6 +23,6 @@ This module provides local scheduled reminders only (Expo `expo-notifications`).
 
 ## Notes
 
-- Android channel: `rxshield-reminders` is created with HIGH importance.
+- Android channel: `medtrack-reminders` is created with HIGH importance.
 - If exact alarm permissions are restricted, delivery may be best-effort.
 - No remote push services are used.

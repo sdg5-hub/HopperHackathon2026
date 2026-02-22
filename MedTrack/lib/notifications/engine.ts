@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import type { DoseEvent, Medication, NotificationLink, RxNotificationDbAdapter } from './types';
 
-export const RX_REMINDER_CHANNEL_ID = 'rxshield-reminders';
+export const RX_REMINDER_CHANNEL_ID = 'medtrack-reminders';
 export const ROLLING_WINDOW_DAYS = 7;
 
 function nowMs(): number {
@@ -88,7 +88,7 @@ export async function initNotifications(): Promise<void> {
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync(RX_REMINDER_CHANNEL_ID, {
-      name: 'RxShield Reminders',
+      name: 'MedTrack Reminders',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
