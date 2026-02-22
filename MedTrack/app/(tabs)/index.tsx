@@ -32,7 +32,7 @@ export default function HomeTabScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [dueNowCount, setDueNowCount] = useState(0);
-  const [timeline, setTimeline] = useState<Array<{ key: string; label: string; subtitle: string; bucket: string; status: string }>>([]);
+  const [timeline, setTimeline] = useState<Array<{ key: string; medicationId: string; label: string; subtitle: string; bucket: string; status: string }>>([]);
   const [streakDays, setStreakDays] = useState(0);
   const [sevenDayPct, setSevenDayPct] = useState(0);
   const [trendHint, setTrendHint] = useState('Trend unavailable yet.');
@@ -65,6 +65,7 @@ export default function HomeTabScreen() {
         const subtitle = `${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         return {
           key: row.id,
+          medicationId: row.medicationId,
           label,
           subtitle,
           bucket: getBucket(date.getHours()),
@@ -168,6 +169,7 @@ export default function HomeTabScreen() {
               {items.map((item) => (
                 <Pressable
                   key={item.key}
+                  onPress={() => router.push(`/meds/${item.medicationId}`)}
                   style={({ pressed }) => ({
                     borderTopWidth: 1,
                     borderTopColor: theme.colors.border,

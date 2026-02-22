@@ -8,10 +8,12 @@ import { describeSchedule, getMedicationDetail } from '@/lib/app/data';
 import { deactivateMedication, reactivateMedication, deleteMedication } from '@/lib/db/queries';
 import { cancelMedicationNotifications, resyncMedication } from '@/lib/notifications/engine';
 import { getNotificationDbAdapter } from '@/lib/notifications/sqlite-adapter';
+import { useTheme } from '@/theme';
 
 const db = getNotificationDbAdapter();
 
 export default function MedicationDetailScreen() {
+  const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [detail, setDetail] = useState<Awaited<ReturnType<typeof getMedicationDetail>> | null>(null);
 
@@ -31,8 +33,8 @@ export default function MedicationDetailScreen() {
 
   if (!detail) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#64748B' }}>Loading medication...</Text>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: theme.colors.mutedText }}>Loading medication...</Text>
       </View>
     );
   }
@@ -89,21 +91,21 @@ export default function MedicationDetailScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 28 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }} contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 28 }}>
       <AppCard>
-        <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A' }}>{medication.name}</Text>
-        <Text style={{ color: '#475569' }}>{medication.dosage ?? 'No dosage'} • {medication.form ?? 'No form'}</Text>
+        <Text style={{ fontSize: 20, fontWeight: '800', color: theme.colors.text }}>{medication.name}</Text>
+        <Text style={{ color: theme.colors.mutedText }}>{medication.dosage ?? 'No dosage'} • {medication.form ?? 'No form'}</Text>
         <Text style={{ color: medication.isActive ? '#15803D' : '#B91C1C', fontWeight: '700' }}>{medication.isActive ? 'Active' : 'Inactive'}</Text>
-        {medication.instructions ? <Text style={{ color: '#334155' }}>{medication.instructions}</Text> : null}
+        {medication.instructions ? <Text style={{ color: theme.colors.mutedText }}>{medication.instructions}</Text> : null}
       </AppCard>
 
       <AppCard>
-        <Text style={{ fontWeight: '700', color: '#0F172A' }}>Schedules</Text>
+        <Text style={{ fontWeight: '700', color: theme.colors.text }}>Schedules</Text>
         {detail.schedules.length === 0 ? (
-          <Text style={{ color: '#64748B' }}>No schedules</Text>
+          <Text style={{ color: theme.colors.mutedText }}>No schedules</Text>
         ) : (
           detail.schedules.map((schedule) => (
-            <Text key={schedule.id} style={{ color: '#475569' }}>
+            <Text key={schedule.id} style={{ color: theme.colors.mutedText }}>
               - {describeSchedule(schedule)}
             </Text>
           ))
@@ -111,19 +113,19 @@ export default function MedicationDetailScreen() {
       </AppCard>
 
       <AppCard>
-        <Text style={{ fontWeight: '700', color: '#0F172A' }}>Warning Tags</Text>
+        <Text style={{ fontWeight: '700', color: theme.colors.text }}>Warning Tags</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {detail.warningTags.length ? detail.warningTags.map((tag) => <Chip key={tag} label={tag} />) : <Text style={{ color: '#64748B' }}>No tags set.</Text>}
+          {detail.warningTags.length ? detail.warningTags.map((tag) => <Chip key={tag} label={tag} />) : <Text style={{ color: theme.colors.mutedText }}>No tags set.</Text>}
         </View>
       </AppCard>
 
       <AppCard>
-        <Text style={{ fontWeight: '700', color: '#0F172A' }}>Next 3 Doses</Text>
+        <Text style={{ fontWeight: '700', color: theme.colors.text }}>Next 3 Doses</Text>
         {detail.upcomingDoses.length === 0 ? (
-          <Text style={{ color: '#64748B' }}>No upcoming doses in log yet.</Text>
+          <Text style={{ color: theme.colors.mutedText }}>No upcoming doses in log yet.</Text>
         ) : (
           detail.upcomingDoses.map((dose) => (
-            <Text key={dose.id} style={{ color: '#475569' }}>
+            <Text key={dose.id} style={{ color: theme.colors.mutedText }}>
               {new Date(dose.scheduledFor).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </Text>
           ))
