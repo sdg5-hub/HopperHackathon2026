@@ -5,7 +5,7 @@ import { AppButton } from '@/components/core/AppButton';
 import { AppCard } from '@/components/core/AppCard';
 import { Chip } from '@/components/core/Chip';
 import { describeSchedule, getMedicationDetail } from '@/lib/app/data';
-import { deactivateMedication, deleteMedication } from '@/lib/db/queries';
+import { deactivateMedication, reactivateMedication, deleteMedication } from '@/lib/db/queries';
 import { cancelMedicationNotifications, resyncMedication } from '@/lib/notifications/engine';
 import { getNotificationDbAdapter } from '@/lib/notifications/sqlite-adapter';
 
@@ -47,6 +47,16 @@ export default function MedicationDetailScreen() {
       await load();
     } catch (error) {
       Alert.alert('Failed', error instanceof Error ? error.message : 'Unable to deactivate medication.');
+    }
+  };
+
+  const onReactivate = async () => {
+    try {
+      await reactivateMedication(medication.id);
+      Alert.alert('Reactivated', 'Medication is now active.');
+      await load();
+    } catch (error) {
+      Alert.alert('Failed', error instanceof Error ? error.message : 'Unable to reactivate medication.');
     }
   };
 
@@ -123,7 +133,11 @@ export default function MedicationDetailScreen() {
       <AppButton label="Edit" tone="secondary" onPress={() => router.push(`/meds/edit/${medication.id}`)} />
       <AppButton label="What if I missed a dose?" tone="secondary" onPress={() => router.push({ pathname: '/missed-dose-guidance', params: { medicationId: medication.id } })} />
       <AppButton label="Resync Reminders" tone="secondary" onPress={onResync} />
-      <AppButton label="Deactivate" tone="danger" onPress={onDeactivate} />
+      {medication.isActive ? (
+        <AppButton label="Deactivate" tone="danger" onPress={onDeactivate} />
+      ) : (
+        <AppButton label="Reactivate" tone="secondary" onPress={onReactivate} />
+      )}
       <AppButton label="Delete" tone="danger" onPress={onDelete} />
     </ScrollView>
   );

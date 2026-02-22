@@ -328,6 +328,10 @@ export async function deactivateMedication(id: string): Promise<void> {
   await updateMedication(id, { isActive: 0 });
 }
 
+export async function reactivateMedication(id: string): Promise<void> {
+  await updateMedication(id, { isActive: 1 });
+}
+
 export async function deleteMedication(id: string): Promise<void> {
   await initDb();
   const db = await getDb();
