@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { useTheme } from '@/theme';
 import { AppButton } from '@/components/core/AppButton';
 import { AppCard } from '@/components/core/AppCard';
 import { Chip } from '@/components/core/Chip';
@@ -8,6 +9,7 @@ import { EmptyState } from '@/components/core/EmptyState';
 import { listMedicationsWithMeta } from '@/lib/app/data';
 
 export default function MedsTabScreen() {
+  const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<Awaited<ReturnType<typeof listMedicationsWithMeta>>>([]);
 
@@ -27,15 +29,15 @@ export default function MedsTabScreen() {
   );
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 28 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }} contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 28 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A' }}>Medications</Text>
+        <Text style={{ ...theme.typography.title, color: theme.colors.text }}>Medications</Text>
         <AppButton label="+ Add" onPress={() => router.push('/meds/new')} style={{ paddingHorizontal: 12 }} />
       </View>
 
       {loading ? (
         <AppCard>
-          <Text style={{ color: '#64748B' }}>Loading medications...</Text>
+          <Text style={{ color: theme.colors.mutedText }}>Loading medications...</Text>
         </AppCard>
       ) : items.length === 0 ? (
         <EmptyState
@@ -47,12 +49,12 @@ export default function MedsTabScreen() {
       ) : (
         items.map((item) => (
           <AppCard key={item.medication.id}>
-            <Text style={{ fontSize: 17, fontWeight: '700', color: '#0F172A' }}>{item.medication.name}</Text>
-            <Text style={{ color: '#475569' }}>{item.medication.dosage ?? 'Dosage not set'}</Text>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: theme.colors.text }}>{item.medication.name}</Text>
+            <Text style={{ color: theme.colors.mutedText }}>{item.medication.dosage ?? 'Dosage not set'}</Text>
             <Text style={{ color: item.medication.isActive ? '#15803D' : '#B91C1C' }}>
               {item.medication.isActive ? 'Active' : 'Inactive'}
             </Text>
-            <Text style={{ color: '#334155' }}>
+            <Text style={{ color: theme.colors.mutedText }}>
               Next dose:{' '}
               {item.nextDose
                 ? new Date(item.nextDose.scheduledFor).toLocaleString([], {

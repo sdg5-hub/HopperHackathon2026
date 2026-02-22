@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '@/components/core/AppButton';
 import { AppCard } from '@/components/core/AppCard';
 import { MedicationForm, createDefaultMedicationFormState } from '@/components/core/MedicationForm';
@@ -9,6 +10,7 @@ import type { SchedulePayload, ScheduleType } from '@/lib/db/types';
 import { getNotificationDbAdapter } from '@/lib/notifications/sqlite-adapter';
 import { resyncMedication } from '@/lib/notifications/engine';
 import type { ScanDraft } from '@/lib/app/scan-parser';
+import { useTheme } from '@/theme';
 
 const db = getNotificationDbAdapter();
 
@@ -57,6 +59,7 @@ function decodeScanPayload(raw?: string | string[]): ScanDraft | null {
 }
 
 export default function AddMedicationScreen() {
+  const theme = useTheme();
   const { scanPayload } = useLocalSearchParams<{ scanPayload?: string }>();
   const [form, setForm] = useState(createDefaultMedicationFormState());
   const [saving, setSaving] = useState(false);
@@ -114,13 +117,33 @@ export default function AddMedicationScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 28 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }} contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 28 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A' }}>Add Medication</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/meds'))}
+            style={({ pressed }) => ({
+              width: 44,
+              height: 44,
+              borderRadius: theme.radius.pill,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.surface,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Ionicons name="chevron-back" size={20} color={theme.colors.accent} />
+          </Pressable>
+          <Text style={{ fontSize: 24, fontWeight: '800', color: theme.colors.text, marginLeft: 8 }}>Add Medication</Text>
+        </View>
         <AppButton label="Scan Label" tone="secondary" onPress={() => router.push('/meds/scan')} style={{ paddingHorizontal: 12 }} />
       </View>
 
-      <Text style={{ color: '#64748B' }}>Camera scan prefills fields; always confirm details before saving.</Text>
+      <Text style={{ color: theme.colors.mutedText }}>Camera scan prefills fields; always confirm details before saving.</Text>
 
       <AppCard>
         <MedicationForm value={form} onChange={setForm} />
