@@ -58,6 +58,7 @@ function mapUser(row: any): User {
     id: row.id,
     displayName: row.display_name,
     timezone: row.timezone,
+    emergencyContact: row.emergency_contact,
     notificationsEnabled: row.notifications_enabled,
     createdAt: row.created_at
   };
@@ -184,8 +185,9 @@ async function withTransaction<T>(fn: (db: SQLiteDatabase) => Promise<T>): Promi
 }
 
 export async function upsertPrimaryUser(input: UpsertUserInput): Promise<User> {
-  const displayName = assertNonEmptyString(input.displayName, 'displayName');
-  const timezone = assertNonEmptyString(input.timezone, 'timezone');
+  const displayName = assertNullableString(input.displayName, 'displayName');
+  const timezone = assertNullableString(input.timezone, 'timezone');
+  const emergencyContact = assertNullableString(input.emergencyContact, 'emergencyContact');
   const notificationsEnabled = input.notificationsEnabled === 1 ? 1 : 0;
   const id = input.id ?? 'primary-user';
   const createdAt = nowMs();
@@ -193,13 +195,14 @@ export async function upsertPrimaryUser(input: UpsertUserInput): Promise<User> {
   await initDb();
   const db = await getDb();
   await db.runAsync(
-    `INSERT INTO users (id, display_name, timezone, notifications_enabled, created_at)
-     VALUES (?, ?, ?, ?, ?)
+    `INSERT INTO users (id, display_name, timezone, emergency_contact, notifications_enabled, created_at)
+     VALUES (?, ?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET
        display_name = excluded.display_name,
        timezone = excluded.timezone,
+       emergency_contact = excluded.emergency_contact,
        notifications_enabled = excluded.notifications_enabled;`,
-    [id, displayName, timezone, notificationsEnabled, createdAt]
+    [id, displayName, timezone, emergencyContact, notificationsEnabled, createdAt]
   );
 
   const row = await db.getFirstAsync<any>('SELECT * FROM users WHERE id = ? LIMIT 1;', [id]);

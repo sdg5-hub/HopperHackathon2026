@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 4;
 
 type Migration = {
   version: number;
@@ -78,6 +78,41 @@ export const migrations: Migration[] = [
       `ALTER TABLE medications ADD COLUMN doctor_contact TEXT;`,
       `ALTER TABLE medications ADD COLUMN pharmacy_contact TEXT;`,
       `ALTER TABLE medications ADD COLUMN missed_dose_guidance TEXT;`
+    ]
+  },
+  {
+    version: 3,
+    statements: [
+      `ALTER TABLE users ADD COLUMN emergency_contact TEXT;`,
+      `CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );`,
+      `CREATE TABLE IF NOT EXISTS notification_links (
+        id TEXT PRIMARY KEY,
+        dose_event_id TEXT NOT NULL,
+        medication_id TEXT NOT NULL,
+        schedule_id TEXT,
+        notification_identifier TEXT NOT NULL,
+        trigger_at INTEGER NOT NULL,
+        kind TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        UNIQUE(dose_event_id, trigger_at, kind),
+        FOREIGN KEY (dose_event_id) REFERENCES dose_events(id) ON DELETE CASCADE,
+        FOREIGN KEY (medication_id) REFERENCES medications(id) ON DELETE CASCADE,
+        FOREIGN KEY (schedule_id) REFERENCES schedules(id) ON DELETE SET NULL
+      );`,
+      `CREATE INDEX IF NOT EXISTS idx_notification_links_medication
+        ON notification_links (medication_id, trigger_at);`
+    ]
+  },
+  {
+    version: 4,
+    statements: [
+      `ALTER TABLE medications ADD COLUMN is_demo INTEGER NOT NULL DEFAULT 0;`,
+      `ALTER TABLE schedules ADD COLUMN is_demo INTEGER NOT NULL DEFAULT 0;`,
+      `ALTER TABLE dose_events ADD COLUMN is_demo INTEGER NOT NULL DEFAULT 0;`
     ]
   }
 ];

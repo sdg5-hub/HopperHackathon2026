@@ -28,6 +28,7 @@ export type User = {
   id: string;
   displayName: string | null;
   timezone: string | null;
+  emergencyContact: string | null;
   notificationsEnabled: 0 | 1;
   createdAt: number;
 };
@@ -45,6 +46,7 @@ export type Medication = {
   startDate: number | null;
   endDate: number | null;
   isActive: 0 | 1;
+  isDemo?: 0 | 1;
   createdAt: number;
   updatedAt: number;
 };
@@ -55,6 +57,7 @@ export type Schedule = {
   type: ScheduleType;
   payloadJson: string;
   timezone: string | null;
+  isDemo?: 0 | 1;
   createdAt: number;
   updatedAt: number;
 };
@@ -76,6 +79,7 @@ export type DoseEvent = {
   status: DoseStatus;
   takenAt: number | null;
   note: string | null;
+  isDemo?: 0 | 1;
   createdAt: number;
   updatedAt: number;
 };
@@ -122,7 +126,8 @@ export type CreateDoseEventInput = {
 
 export type UpsertUserInput = {
   id?: string;
-  displayName: string;
-  timezone: string;
+  displayName: string | null;
+  timezone: string | null;
+  emergencyContact?: string | null;
   notificationsEnabled: 0 | 1;
 };
