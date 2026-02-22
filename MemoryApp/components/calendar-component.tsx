@@ -35,7 +35,7 @@ export default function CalendarComponent({ reminders, selectedDate, onDateSelec
   };
 
   return (
-    <View style={{ height: 350 }}>
+    <View style={{ height: 350}}>
       <Calendar
         onDayPress={(day) => onDateSelect(day.dateString)}
         markingType="custom"

@@ -1,5 +1,5 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
-import { getDb, initDb } from './index';
+import { getDb, initDb } from './db';
 import { Errors } from './errors';
 import {
   assertInSet,
@@ -14,7 +14,7 @@ import {
   nowMs,
   toSnakeCaseLabel
 } from './utils';
-import type {
+import {
   CreateDoseEventInput,
   CreateMedicationInput,
   DoseEvent,
@@ -26,7 +26,7 @@ import type {
   UpdateMedicationPatch,
   UpdateSchedulePatch,
   WarningTag
-} from './types';
+} from '@/types';
 
 const FORM_VALUES = ['pill', 'liquid', 'injection', 'other'] as const;
 const SCHEDULE_VALUES = ['fixed_times', 'every_x_hours', 'days_of_week', 'prn'] as const;
@@ -498,15 +498,15 @@ async function updateDoseStatus(
 }
 
 export async function markDoseTaken(doseEventId: string, takenAtMs: number): Promise<void> {
-  await updateDoseStatus(doseEventId, 'taken', { takenAt: assertUnixMs(takenAtMs, 'takenAtMs') });
+  await updateDoseStatus(doseEventId, DoseStatus.TAKEN, { takenAt: assertUnixMs(takenAtMs, 'takenAtMs') });
 }
 
 export async function markDoseSkipped(doseEventId: string, note?: string): Promise<void> {
-  await updateDoseStatus(doseEventId, 'skipped', { note: note ? assertNonEmptyString(note, 'note') : null });
+  await updateDoseStatus(doseEventId, DoseStatus.SKIPPED, { note: note ? assertNonEmptyString(note, 'note') : null });
 }
 
 export async function markDoseMissed(doseEventId: string): Promise<void> {
-  await updateDoseStatus(doseEventId, 'missed');
+  await updateDoseStatus(doseEventId, DoseStatus.MISSED);
 }
 
 export async function seedDemoDataImpl(): Promise<void> {
@@ -570,10 +570,10 @@ export async function seedDemoDataImpl(): Promise<void> {
     const now = nowMs();
     const oneHour = 60 * 60 * 1000;
 
-    await createDoseEvent({ medicationId: med1.id, scheduleId: sch1.id, scheduledFor: now - 3 * oneHour, status: 'taken', takenAt: now - 2 * oneHour });
-    await createDoseEvent({ medicationId: med2.id, scheduleId: sch2.id, scheduledFor: now - oneHour, status: 'skipped', note: 'Felt nauseous' });
-    await createDoseEvent({ medicationId: med2.id, scheduleId: sch2.id, scheduledFor: now + oneHour, status: 'due' });
-    await createDoseEvent({ medicationId: med3.id, scheduleId: sch3.id, scheduledFor: now + 2 * oneHour, status: 'due' });
+    await createDoseEvent({ medicationId: med1.id, scheduleId: sch1.id, scheduledFor: now - 3 * oneHour, status: DoseStatus.TAKEN, takenAt: now - 2 * oneHour });
+    await createDoseEvent({ medicationId: med2.id, scheduleId: sch2.id, scheduledFor: now - oneHour, status: DoseStatus.SKIPPED, note: 'Felt nauseous' });
+    await createDoseEvent({ medicationId: med2.id, scheduleId: sch2.id, scheduledFor: now + oneHour, status: DoseStatus.DUE });
+    await createDoseEvent({ medicationId: med3.id, scheduleId: sch3.id, scheduledFor: now + 2 * oneHour, status: DoseStatus.DUE });
   });
 }
 
