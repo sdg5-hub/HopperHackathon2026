@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 type Migration = {
   version: number;
@@ -113,6 +113,23 @@ export const migrations: Migration[] = [
       `ALTER TABLE medications ADD COLUMN is_demo INTEGER NOT NULL DEFAULT 0;`,
       `ALTER TABLE schedules ADD COLUMN is_demo INTEGER NOT NULL DEFAULT 0;`,
       `ALTER TABLE dose_events ADD COLUMN is_demo INTEGER NOT NULL DEFAULT 0;`
+    ]
+  },
+  {
+    version: 5,
+    statements: [
+      `CREATE TABLE IF NOT EXISTS reminders (
+        id TEXT PRIMARY KEY,
+        user_id TEXT,
+        date TEXT NOT NULL,
+        time TEXT NOT NULL,
+        text TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );`,
+      `CREATE INDEX IF NOT EXISTS idx_reminders_date_time
+        ON reminders (date, time);`
     ]
   }
 ];

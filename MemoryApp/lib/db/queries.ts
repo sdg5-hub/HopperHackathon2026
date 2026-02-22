@@ -643,3 +643,68 @@ export async function seedDemoDataImpl(): Promise<void> {
 export function decodeSchedulePayload<T extends SchedulePayload>(schedule: Schedule): T {
   return jsonParse<T>(schedule.payloadJson);
 }
+
+export async function createReminder(date: string, time: string, text: string, userId?: string | null): Promise<{ id: string; date: string; time: string; text: string }> {
+  await initDb();
+  const db = await getDb();
+  
+  const id = generateId();
+  const timestamp = nowMs();
+  
+  await db.runAsync(
+    `INSERT INTO reminders (id, user_id, date, time, text, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?);`,
+    [id, userId ?? null, date, time, text, timestamp, timestamp]
+  );
+  
+  return { id, date, time, text };
+}
+
+export async function listRemindersByDate(date: string): Promise<Array<{ id: string; date: string; time: string; text: string }>> {
+  await initDb();
+  const db = await getDb();
+  
+  const rows = await db.getAllAsync<any>(
+    `SELECT id, date, time, text FROM reminders WHERE date = ? ORDER BY time ASC;`,
+    [date]
+  );
+  
+  return rows.map((row) => ({
+    id: row.id,
+    date: row.date,
+    time: row.time,
+    text: row.text
+  }));
+}
+
+export async function deleteReminder(id: string): Promise<void> {
+  await initDb();
+  const db = await getDb();
+  
+  await db.runAsync('DELETE FROM reminders WHERE id = ?;', [id]);
+}
+
+export async function listAllReminders(): Promise<Record<string, Array<{ id: string; time: string; text: string }>>> {
+  await initDb();
+  const db = await getDb();
+  
+  const rows = await db.getAllAsync<any>(
+    `SELECT id, date, time, text FROM reminders ORDER BY date DESC, time ASC;`
+  );
+  
+  const result: Record<string, Array<{ id: string; time: string; text: string }>> = {};
+  
+  for (const row of rows) {
+    if (!result[row.date]) {
+      result[row.date] = [];
+    }
+    result[row.date].push({
+      id: row.id,
+      time: row.time,
+      text: row.text
+    });
+  }
+  
+  return result;
+}
+

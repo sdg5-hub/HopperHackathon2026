@@ -4,8 +4,9 @@ import { router } from 'expo-router';
 import { initDb } from '@/lib/db';
 import { initNotifications, resyncAllSchedules } from '@/lib/notifications/engine';
 import { getNotificationDbAdapter } from '@/lib/notifications/sqlite-adapter';
-import { isOnboardingComplete, isSafetyAcknowledged, shouldReshowSafetyOnLaunch } from '@/lib/app/settings';
+import { isOnboardingComplete, isSafetyAcknowledged, shouldReshowSafetyOnLaunch, isDemoModeEnabled } from '@/lib/app/settings';
 import { runReliabilitySweep } from '@/lib/notifications/reliability';
+import { loadDemoDataAndNearReminder } from '@/lib/app/demo';
 
 export default function LaunchGateScreen() {
   const [status, setStatus] = useState('Starting RxShield...');
@@ -17,6 +18,12 @@ export default function LaunchGateScreen() {
       try {
         setStatus('Initializing local database...');
         await initDb();
+
+        setStatus('Loading demo data...');
+        const demoEnabled = await isDemoModeEnabled();
+        if (demoEnabled) {
+          await loadDemoDataAndNearReminder();
+        }
 
         setStatus('Preparing notifications...');
         await initNotifications();

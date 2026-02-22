@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Alert } from 'react-native';
 import { Reminder } from '@/types';
+import { createReminder } from '@/lib/db/queries';
 
 interface AddReminderFormProps {
   selectedDate: string;
@@ -12,8 +13,9 @@ const TIME_REGEX = /^(\d{1,2}):(\d{2})(?:\s*([AaPp][Mm]))?$/;
 export default function AddReminderForm({ selectedDate, onAddReminder }: AddReminderFormProps) {
   const [text, setText] = useState('');
   const [time, setTime] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!selectedDate || !text) return;
 
     const trimmedTime = time.trim() || '00:00';
@@ -50,9 +52,17 @@ export default function AddReminderForm({ selectedDate, onAddReminder }: AddRemi
       formattedTime = `${hour12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
     }
 
-    onAddReminder(selectedDate, { text, time: formattedTime });
-    setText('');
-    setTime('');
+    setLoading(true);
+    try {
+      await createReminder(selectedDate, formattedTime, text);
+      onAddReminder(selectedDate, { text, time: formattedTime });
+      setText('');
+      setTime('');
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to add reminder');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,15 +71,17 @@ export default function AddReminderForm({ selectedDate, onAddReminder }: AddRemi
         placeholder="Event description"
         value={text}
         onChangeText={setText}
+        editable={!loading}
         style={{ borderWidth: 1, padding: 8, marginBottom: 8, borderRadius: 4 }}
       />
       <TextInput
         placeholder="Time (HH:MM or HH:MM AM/PM)"
         value={time}
         onChangeText={setTime}
+        editable={!loading}
         style={{ borderWidth: 1, padding: 8, marginBottom: 8, borderRadius: 4 }}
       />
-      <Button title="Add Reminder" onPress={handleAdd} />
+      <Button title={loading ? 'Adding...' : 'Add Reminder'} onPress={handleAdd} disabled={loading} />
     </View>
   );
 }

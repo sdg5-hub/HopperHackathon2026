@@ -11,7 +11,7 @@ import CalendarComponent from '@/components/calendar-component';
 import AddReminderForm from '@/components/add-reminder-form';
 import DateCard from '@/components/date-card';
 import { listTodayDoseRows } from '@/lib/app/data';
-import { listDoseEventsForMedication, listMedications } from '@/lib/db/queries';
+import { listDoseEventsForMedication, listMedications, listAllReminders } from '@/lib/db/queries';
 import { getNotificationDbAdapter } from '@/lib/notifications/sqlite-adapter';
 import { resyncAllSchedules } from '@/lib/notifications/engine';
 import { buildDailyAdherenceSeries, computeSevenDayAdherence, computeStreak, computeTrendHint } from '@/lib/app/adherence';
@@ -38,16 +38,7 @@ export default function HomeTabScreen() {
   const [trendHint, setTrendHint] = useState('Trend unavailable yet.');
   const [demoEnabled, setDemoEnabled] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
-  const [calendarReminders, setCalendarReminders] = useState<Record<string, Reminder[]>>({
-    '2026-02-21': [
-      { time: '08:30 AM', text: 'Take medicine' },
-      { time: '12:00 PM', text: 'Call caregiver' },
-    ],
-    '2026-02-22': [
-      { time: '10:00 AM', text: 'Walk in park' },
-      { time: '03:30 PM', text: 'Drink water' },
-    ],
-  });
+  const [calendarReminders, setCalendarReminders] = useState<Record<string, Reminder[]>>({});
 
   const handleAddReminder = useCallback((date: string, reminder: Reminder) => {
     setCalendarReminders((prev) => {
@@ -63,8 +54,10 @@ export default function HomeTabScreen() {
     const meds = await listMedications(true);
     const due = await db.listDueDoseEvents(Date.now());
     const todayRows = await listTodayDoseRows();
+    const reminders = await listAllReminders();
 
     setDueNowCount(due.length);
+    setCalendarReminders(reminders);
     setTimeline(
       todayRows.map((row) => {
         const date = new Date(row.scheduledFor);
