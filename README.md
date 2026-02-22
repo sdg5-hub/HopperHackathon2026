@@ -49,7 +49,7 @@ MedTrack/
   theme/
   assets/
 
-##How to Run Locally (Expo Go)
+## How to Run Locally (Expo Go)
 Prerequisites
 Node.js 18+ (or 20+)
 npm
@@ -66,7 +66,7 @@ Then:
 1.Open Expo Go on your phone.
 2.Scan the QR code shown in terminal.
 
-##Features in Detail
+## Features in Detail
 Onboarding
 Welcome + disclaimer
 Notification permission step
@@ -92,18 +92,18 @@ Safety rules overview
 Missed-dose guidance
 Emergency info card and share action
 
-##Demo Mode
+## Demo Mode
 From Profile:
 
 Load demo data + schedule near-future reminder
 Clear demo data (removes only demo records)
 
-##Data & Privacy
+## Data & Privacy
 Data is stored locally on device (SQLite/local settings)
 No remote server required
 No third-party medical data API used in prototype mode
 
-##Troubleshooting
+## Troubleshooting
 Expo won’t start / hangs
 pkill -f "expo|metro|react-native|node" || true
 rm -rf .expo .expo-shared
@@ -114,7 +114,7 @@ Disable VPN
 Fully close/reopen Expo Go
 Rescan latest QR
 
-##Team Notes
+## Team Notes
 If you’re collaborating:
 
 git checkout main
