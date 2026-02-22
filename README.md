@@ -51,15 +51,16 @@ MedTrack/
 
 ## How to Run Locally (Expo Go)
 Prerequisites
-Node.js 18+ (or 20+)
-npm
-Expo Go app on your phone (iOS/Android)
-Phone and laptop on same Wi-Fi
+1.Node.js 18+ (or 20+)
+2.npm
+3.Expo Go app on your phone (iOS/Android)
+4.Phone and laptop on same Wi-Fi
+
 Steps
-git clone https://github.com/sdg5-hub/HopperHackathon2026.git
-cd HopperHackathon2026/MedTrack
-npm install
-npx expo start --lan --clear
+1.git clone https://github.com/sdg5-hub/HopperHackathon2026.git
+2.cd HopperHackathon2026/MedTrack
+3.npm install
+4.npx expo start --lan --clear
 
 Then:
 
@@ -67,30 +68,30 @@ Then:
 2.Scan the QR code shown in terminal.
 
 ## Features in Detail
-Onboarding
-Welcome + disclaimer
-Notification permission step
-Profile setup step
-Finish step
-Medication Management
-CRUD for medications
-Schedule configuration
-Warning tags
-Optional barcode scan to prefill fields
-Reminder Engine
-Local scheduled notifications
-Resync on updates
-Snooze support
-Due-dose modal integration
-Adherence + History
-7-day adherence %
-Streak
-Dose status timeline
-Filters and status chips
-Safety + Emergency
-Safety rules overview
-Missed-dose guidance
-Emergency info card and share action
+->Onboarding
+->Welcome + disclaimer
+->Notification permission step
+->Profile setup step
+->Finish step
+->Medication Management
+->CRUD for medications
+->Schedule configuration
+->Warning tags
+->Optional barcode scan to prefill fields
+->Reminder Engine
+->Local scheduled notifications
+->Resync on updates
+->Snooze support
+->Due-dose modal integration
+->Adherence + History
+->7-day adherence %
+->Streak
+->Dose status timeline
+->Filters and status chips
+->Safety + Emergency
+->Safety rules overview
+->Missed-dose guidance
+->Emergency info card and share action
 
 ## Demo Mode
 From Profile:
