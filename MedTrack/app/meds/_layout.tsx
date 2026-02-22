@@ -41,7 +41,7 @@ export default function MedsLayout() {
         }}
       />
       <Stack.Screen name="new" options={{ title: 'Add Medication', headerLeft: () => <BackButton label="Back" /> }} />
-      <Stack.Screen name="scan" options={{ title: 'Scan Label', headerLeft: () => <BackButton label="Back" /> }} />
+      <Stack.Screen name="scan" options={{ title: 'Scan Barcode', headerLeft: () => <BackButton label="Back" /> }} />
       <Stack.Screen name="[id]" options={{ title: 'Medication Detail', headerLeft: () => <BackButton label="Back" /> }} />
       <Stack.Screen name="edit/[id]" options={{ title: 'Edit Medication', headerLeft: () => <BackButton label="Back" /> }} />
     </Stack>

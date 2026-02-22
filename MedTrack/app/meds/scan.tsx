@@ -5,8 +5,10 @@ import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'ex
 import { AppButton } from '@/components/core/AppButton';
 import { AppCard } from '@/components/core/AppCard';
 import { parseScannedMedication } from '@/lib/app/scan-parser';
+import { useTheme } from '@/theme';
 
 export default function ScanMedicationScreen() {
+  const theme = useTheme();
   const [permission, requestPermission] = useCameraPermissions();
   const [rawScan, setRawScan] = useState('');
   const [locked, setLocked] = useState(false);
@@ -31,18 +33,18 @@ export default function ScanMedicationScreen() {
 
   if (!permission) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Requesting camera permission...</Text>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: theme.colors.mutedText }}>Requesting camera permission...</Text>
       </View>
     );
   }
 
   if (!permission.granted) {
     return (
-      <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={{ padding: 16, gap: 12 }}>
+      <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }} contentContainerStyle={{ padding: 16, gap: 12 }}>
         <AppCard>
-          <Text style={{ fontSize: 20, fontWeight: '700', color: '#0F172A' }}>Camera permission needed</Text>
-          <Text style={{ color: '#475569' }}>Allow camera access to scan bottle barcodes/labels and prefill medication details.</Text>
+          <Text style={{ fontSize: 20, fontWeight: '700', color: theme.colors.text }}>Camera permission needed</Text>
+          <Text style={{ color: theme.colors.mutedText }}>Allow camera access to scan bottle barcodes/QR and prefill medication details.</Text>
           <AppButton label="Grant Permission" onPress={() => requestPermission()} />
           <AppButton label="Back to Add Medication" tone="secondary" onPress={() => router.replace('/meds/new')} />
         </AppCard>
@@ -51,21 +53,21 @@ export default function ScanMedicationScreen() {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 28 }}>
-      <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A' }}>Scan Medication Label</Text>
-      <Text style={{ color: '#475569' }}>Best results: scan barcode or QR on bottle/package, then confirm fields before saving.</Text>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }} contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 28 }}>
+      <Text style={{ fontSize: 24, fontWeight: '800', color: theme.colors.text }}>Scan Medication Barcode</Text>
+      <Text style={{ color: theme.colors.mutedText }}>Best results: scan barcode or QR on bottle/package, then confirm fields before saving.</Text>
 
-      <View style={{ height: 320, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#CBD5E1' }}>
+      <View style={{ height: 320, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: theme.colors.border }}>
         <CameraView style={{ flex: 1 }} facing="back" barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'code39', 'qr'] }} onBarcodeScanned={onScanned} />
       </View>
 
       <AppCard>
-        <Text style={{ fontWeight: '700', color: '#0F172A' }}>Scanned data</Text>
-        <Text style={{ color: '#475569' }}>{rawScan || 'No scan yet.'}</Text>
+        <Text style={{ fontWeight: '700', color: theme.colors.text }}>Scanned data</Text>
+        <Text style={{ color: theme.colors.mutedText }}>{rawScan || 'No scan yet.'}</Text>
         {parsed ? (
           <>
-            <Text style={{ color: '#0F172A', fontWeight: '600' }}>{parsed.name}{parsed.dosage ? ` • ${parsed.dosage}` : ''}</Text>
-            <Text style={{ color: '#475569' }}>{parsed.instructions}</Text>
+            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>{parsed.name}{parsed.dosage ? ` • ${parsed.dosage}` : ''}</Text>
+            <Text style={{ color: theme.colors.mutedText }}>{parsed.instructions}</Text>
           </>
         ) : null}
       </AppCard>

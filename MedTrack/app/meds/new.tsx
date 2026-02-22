@@ -140,7 +140,7 @@ export default function AddMedicationScreen() {
           </Pressable>
           <Text style={{ fontSize: 24, fontWeight: '800', color: theme.colors.text, marginLeft: 8 }}>Add Medication</Text>
         </View>
-        <AppButton label="Scan Label" tone="secondary" onPress={() => router.push('/meds/scan')} style={{ paddingHorizontal: 12 }} />
+        <AppButton label="Scan Barcode" tone="secondary" onPress={() => router.push('/meds/scan')} style={{ paddingHorizontal: 12 }} />
       </View>
 
       <Text style={{ color: theme.colors.mutedText }}>Camera scan prefills fields; always confirm details before saving.</Text>
