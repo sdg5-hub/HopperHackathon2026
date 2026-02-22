@@ -1,129 +1,62 @@
-import React, { useState } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Clock from '@/components/clock';
-import CalendarComponent from '@/components/calendar-component';
-import AddReminderForm from '@/components/add-reminder-form';
-import DateCard from '@/components/date-card';
-import type { Reminder } from '@/types';
-import HistoryScreen from './history';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { initDb } from '@/lib/db';
+import { initNotifications, resyncAllSchedules } from '@/lib/notifications/engine';
+import { getNotificationDbAdapter } from '@/lib/notifications/sqlite-adapter';
+import { isOnboardingComplete, isSafetyAcknowledged, shouldReshowSafetyOnLaunch } from '@/lib/app/settings';
+import { runReliabilitySweep } from '@/lib/notifications/reliability';
 
-const parseReminderDate = (date: string, time: string) => {
-  // Expect date in YYYY-MM-DD
-  const parts = date.split('-').map((v) => Number(v));
-  if (parts.length !== 3 || parts.some((v) => Number.isNaN(v))) return null;
+export default function LaunchGateScreen() {
+  const [status, setStatus] = useState('Starting RxShield...');
 
-  const [year, month, day] = parts;
+  useEffect(() => {
+    let alive = true;
 
-  let hours = 0;
-  let minutes = 0;
+    (async () => {
+      try {
+        setStatus('Initializing local database...');
+        await initDb();
 
-  const trimmedTime = time.trim();
-  if (trimmedTime) {
-    const match = /^(\d{1,2}):(\d{2})(?:\s*([AaPp][Mm]))?$/.exec(trimmedTime);
-    if (!match) return null;
+        setStatus('Preparing notifications...');
+        await initNotifications();
 
-    hours = Number(match[1]);
-    minutes = Number(match[2]);
+        const onboardingDone = await isOnboardingComplete();
+        if (!onboardingDone) {
+          if (alive) router.replace('/(onboarding)');
+          return;
+        }
 
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+        const db = getNotificationDbAdapter();
+        setStatus('Syncing reminders...');
+        await resyncAllSchedules(db);
+        await runReliabilitySweep(db);
 
-    const meridian = match[3]?.toLowerCase();
-    if (meridian) {
-      hours = hours % 12;
-      if (meridian === 'pm') hours += 12;
-    }
-  }
+        const safetyAck = await isSafetyAcknowledged();
+        const forceShowSafety = await shouldReshowSafetyOnLaunch();
+        if (!safetyAck || forceShowSafety) {
+          if (alive) router.replace({ pathname: '/safety-check', params: { returnTo: '/(tabs)' } });
+          return;
+        }
 
-  return new Date(year, month - 1, day, hours, minutes, 0, 0);
-};
+        if (alive) router.replace('/(tabs)');
+      } catch (error) {
+        if (alive) {
+          setStatus(error instanceof Error ? error.message : 'Failed to initialize app.');
+        }
+      }
+    })();
 
-export default function HomeScreen() {
-  const [selectedDate, setSelectedDate] = useState('');
-  const [activeView, setActiveView] = useState<'calendar' | 'history'>('calendar');
-  const [reminders, setReminders] = useState<Record<string, Reminder[]>>({
-    '2026-02-21': [
-      { time: '08:30 AM', text: 'Take medicine' },
-      { time: '12:00 PM', text: 'Call caregiver' },
-    ],
-    '2026-02-22': [
-      { time: '10:00 AM', text: 'Walk in park' },
-      { time: '03:30 PM', text: 'Drink water' },
-    ],
-  });
-
-  const handleAddReminder = (date: string, reminder: Reminder) => {
-    const reminderDate = parseReminderDate(date, reminder.time);
-    if (!reminderDate) return;
-
-    setReminders((prev) => {
-      const updated = { ...prev };
-      if (!updated[date]) updated[date] = [];
-      updated[date].push(reminder);
-      return updated;
-    });
-  };
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.switchRow}>
-        <TouchableOpacity
-          style={[styles.switchButton, activeView === 'calendar' && styles.switchButtonActive]}
-          onPress={() => setActiveView('calendar')}
-        >
-          <Text style={[styles.switchText, activeView === 'calendar' && styles.switchTextActive]}>Calendar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.switchButton, activeView === 'history' && styles.switchButtonActive]}
-          onPress={() => setActiveView('history')}
-        >
-          <Text style={[styles.switchText, activeView === 'history' && styles.switchTextActive]}>History</Text>
-        </TouchableOpacity>
-      </View>
-
-      {activeView === 'calendar' ? (
-        <ScrollView style={styles.calendarScroll}>
-          <Clock />
-          <CalendarComponent reminders={reminders} selectedDate={selectedDate} onDateSelect={setSelectedDate} />
-          {selectedDate && <AddReminderForm selectedDate={selectedDate} onAddReminder={handleAddReminder} />}
-          {selectedDate && <DateCard date={selectedDate} reminders={reminders[selectedDate] || []} />}
-        </ScrollView>
-      ) : (
-        <HistoryScreen />
-      )}
+    <View style={{ flex: 1, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
+      <ActivityIndicator size="large" color="#0F766E" />
+      <Text style={{ color: '#0F172A', fontSize: 20, fontWeight: '700' }}>RxShield</Text>
+      <Text style={{ color: '#475569', textAlign: 'center' }}>{status}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingVertical: 50,
-    paddingHorizontal: 10,
-  },
-  switchRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 10,
-  },
-  switchButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#e6e6e6',
-    alignItems: 'center',
-  },
-  switchButtonActive: {
-    backgroundColor: '#2f6fe6',
-  },
-  switchText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  switchTextActive: {
-    color: '#fff',
-  },
-  calendarScroll: {
-    flex: 1,
-  },
-});

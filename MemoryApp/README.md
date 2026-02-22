@@ -1,50 +1,61 @@
-# Welcome to your Expo app 👋
+# RxShield (MemoryApp)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+RxShield is a local-first Expo app for medication reminders, dose tracking, and safety-first workflows.
 
-## Get started
+## Stack
+- Expo + React Native + TypeScript
+- Expo Router (tabs + stack flows)
+- SQLite (`expo-sqlite`) for all local data
+- Local notifications (`expo-notifications`)
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+## Run
 ```bash
-npm run reset-project
+cd "/Users/osamahgilani/Documents/New project/HopperHackathon2026/MemoryApp"
+npm install
+npx expo start --lan --clear
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+If LAN fails:
+```bash
+npx expo start --tunnel --clear
+```
 
-## Learn more
+## Product Surfaces
+- First-launch onboarding flow (`/app/(onboarding)/*`)
+- Tabs: Home, Meds, History, Profile (`/app/(tabs)/*`)
+- Medication CRUD + schedule editing (`/app/meds/*`)
+- Safety Check (`/app/safety-check.tsx`)
+- Missed Dose Guidance (`/app/missed-dose-guidance.tsx`)
+- Emergency Card (`/app/emergency-card.tsx`)
 
-To learn more about developing your project with Expo, look at the following resources:
+## Safety Check
+- Launch-gated unless acknowledged.
+- Includes local rules, severity legend, and “not exhaustive” disclaimer.
+- Settings supports:
+  - Re-show Safety Check on launch
+  - Reset Safety Check acknowledgement
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Auto-Miss Reliability
+- Old `due` doses auto-mark `missed` after configurable window.
+- Options: 1h / 2h / 4h / Never.
+- Sweep runs on app launch, app foreground, and periodic interval.
 
-## Join the community
+## Demo Mode for Judges
+- Profile → **Load demo data + schedule near-future reminder**
+- Inserts demo meds + schedules + historical events (`is_demo=1`)
+- Schedules near-future reminder for live walkthrough
+- Profile → **Clear demo data** removes demo records only
 
-Join our community of developers creating universal apps.
+## Demo Script
+1. Open Profile tab and run **Load demo data + schedule near-future reminder**.
+2. Open Home: show streak, 7-day adherence, and timeline.
+3. Open History: switch date ranges + medication filter chips.
+4. Tap a notification: due modal opens.
+5. Snooze then mark Taken.
+6. Open Missed Dose Guidance from History for a missed/skipped row.
+7. Open Safety Check and Emergency Card for clinical-safety walkthrough.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Safety Notes
+- RxShield is **not medical advice**.
+- Guidance is **not exhaustive**.
+- Always confirm medication decisions with a pharmacist or clinician.
