@@ -175,6 +175,16 @@ export default function HistoryScreen() {
     }
   };
 
+  const getStatusDisplay = (status: DoseStatus): string => {
+    const statusMap: Record<DoseStatus, string> = {
+      [DoseStatus.DUE]: 'Due',
+      [DoseStatus.TAKEN]: 'Taken',
+      [DoseStatus.SKIPPED]: 'Skipped',
+      [DoseStatus.MISSED]: 'Missed',
+    };
+    return statusMap[status] || status;
+  };
+
   const renderMedicationRow = ({ item }: { item: MedicationHistory }) => (
     <View style={styles.row}>
       <Text style={styles.medication}>{item.name}</Text>
@@ -186,7 +196,7 @@ export default function HistoryScreen() {
           { backgroundColor: getStatusColor(item.status) },
         ]}
       >
-        <Text style={styles.statusText}>{DoseStatus[item.status]}</Text>
+        <Text style={styles.statusText}>{getStatusDisplay(item.status)}</Text>
       </View>
     </View>
   );

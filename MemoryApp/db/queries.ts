@@ -404,7 +404,10 @@ export async function createDoseEvent(input: CreateDoseEventInput): Promise<Dose
   const id = generateId();
   const timestamp = nowMs();
   const db = await getDb();
-  await ensureMedicationExists(db, medicationId);
+  // Skip medication check for manual entries
+  if (medicationId !== 'manual-entry') {
+    await ensureMedicationExists(db, medicationId);
+  }
   if (scheduleId) {
     await ensureScheduleExists(db, scheduleId);
   }
