@@ -106,9 +106,10 @@ No third-party medical data API used in prototype mode
 
 ## Troubleshooting
 Expo won’t start / hangs
-pkill -f "expo|metro|react-native|node" || true
-rm -rf .expo .expo-shared
-npx expo start --lan --clear --port 8081
+-> pkill -f "expo|metro|react-native|node" || true
+-> rm -rf .expo .expo-shared
+-> npx expo start --lan --clear --port 8081
+
 iOS Expo Go cannot connect
 Ensure same Wi-Fi
 Disable VPN
